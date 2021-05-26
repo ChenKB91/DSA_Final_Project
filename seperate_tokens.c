@@ -8,20 +8,18 @@ char** get_token(char* s)
     int i=0;
     int j=0;
     int token=0;
-    char** ret = calloc( strlen(s)/2,sizeof(char*) );
-    char* buf = calloc(50,sizeof(char));
+    char** ret = malloc( (strlen(s)/2)*sizeof(char*) );
+    char* buf = malloc( 50*sizeof(char) );
     while(s[i] != '\0'){
         if(isdigit(s[i])||isalpha(s[i])){
             buf[j] = s[i];
             j+=1;
-        }else{
-            if( j!=0 ){
-                j=0;
-                buf=realloc(buf,(strlen(buf)+1)*sizeof(char));
-                ret[token] = buf;
-                token+=1;
-                buf=calloc(50,sizeof(char));
-            }
+        }else if( j!=0 ){
+          j=0;
+          buf=realloc(buf,(strlen(buf)+1)*sizeof(char));
+          ret[token] = buf;
+          token+=1;
+          buf=malloc(50*sizeof(char));
         }
         i+=1;
     }

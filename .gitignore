@@ -1,3 +1,4 @@
 test_env/
 test_env.zip
 a.out
+*.exe

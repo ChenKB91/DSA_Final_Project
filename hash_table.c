@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define MAGIC_MUL 31
-#define MAGIC_REM 1000000007
+#define KEY_RANGE 1000000007
 #define KEY_SIZE 10000
 
 typedef struct __node__ {
@@ -20,16 +20,13 @@ typedef struct __llist__ {
 int hashStr(char* s) {
     long long int hash = 0;
     while (*s) {
-        hash = (MAGIC_MUL*hash+(*s++)) % MAGIC_REM;
+        hash = (MAGIC_MUL*hash+(*s++)) % KEY_RANGE;
     }
     return hash;
 }
 
 llist* newDict() {
-    llist* dict = malloc(MAGIC_REM*sizeof(llist));
-    for (int i=0; i<MAGIC_REM; i++) {
-        dict[i].head = NULL;
-    }
+    llist* dict = calloc(KEY_RANGE, sizeof(llist));
     return dict;
 }
 
@@ -62,6 +59,7 @@ int main() {
     char k2[100] = "Hi!";    int v2 = 37;
     char k3[100] = "Howdy!"; int v3 = 29;
     char k4[100] = "Hola!";  int v4 = 13;
+    char k5[100] = "Aloha!";
     llist* dict = newDict();
     addEntry(dict, k1, v1);
     addEntry(dict, k2, v2);
@@ -71,6 +69,6 @@ int main() {
     printf("%d\n", lookup(dict, k2));
     printf("%d\n", lookup(dict, k3));
     printf("%d\n", lookup(dict, k4));
-    
+    printf("%d\n", lookup(dict, k5));
     return 0;
 }

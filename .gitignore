@@ -4,3 +4,6 @@ a.out
 *.exe
 ## vim temp file
 *~
+.vscode/
+## xlsx temp file
+~$*

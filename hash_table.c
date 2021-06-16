@@ -18,16 +18,6 @@ const int transfer[128] = { // 16 per line
      7,  0,  4, 13, -1,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1
 };
 
-typedef struct __node__ {
-    char key[KEY_SIZE];
-    int mail_cnt;
-    int mails[MAIL_N];
-    struct __node__* nxt;
-} node;
-
-typedef struct __llist__ {
-    node* head;
-} llist;
 
 int hashStr(char* s) {
     long long int hash = 0;
@@ -36,6 +26,40 @@ int hashStr(char* s) {
     }
     return hash;
 }
+
+typedef struct __mnode__ {
+    int mail_id;
+    struct __mnode__* nxt;
+} mnode;
+
+typedef struct __mlist__{
+    mnode* head;
+} mlist;
+
+mlist* newMlist () {
+    mlist* new = malloc(sizeof(mlist));
+    new->head = NULL;
+    return new;
+}
+
+void mlistInsertTail(mlist* l, int mail_id) {
+    mnode* new = malloc(sizeof(mnode));
+    new->mail_id = mail_id;
+    new->nxt = l->head;
+    l->head = new;
+}
+
+typedef struct __node__ {
+    char key[KEY_SIZE];
+    int mail_cnt;
+    // int mail_arr[MAIL_N];
+    mlist* mail_list;
+    struct __node__* nxt;
+} node;
+
+typedef struct __llist__ {
+    node* head;
+} llist;
 
 llist* newDict() {
     llist* dict = calloc(KEY_RANGE, sizeof(llist));
@@ -57,18 +81,19 @@ void newKey(llist** table, char* key, int mail_id) {
     int idx = hashStr(key);
     strcpy(new->key, key);
     new->mail_cnt = 1;
-    new->mails[0] = mail_id;
+    new->mail_list = newMlist();
+    mlistInsertTail(new->mail_list, mail_id);
     new->nxt = dict[idx].head;
     dict[idx].head = new;
 }
 
-int* getMails(llist** table, char* key) {
+mlist* getMails(llist** table, char* key) {
     llist* dict = table[transfer[key[0]]];
     int idx = hashStr(key);
     node* cur_node = dict[idx].head;
     while (cur_node) {
         if (strcmp(key, cur_node->key) == 0) {
-            return cur_node->mails;
+            return cur_node->mail_list;
         } else {
             cur_node = cur_node->nxt;
         }

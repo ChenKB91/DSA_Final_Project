@@ -221,46 +221,44 @@ int main() {
     // /*
     llist** hashtable = initTable();
     SimTable* sim = initSimilar();
-
-    str2token *st1, *st2, *st3, *st4;
-    st1 = readTokenFromFile("data/pure/mail1");
-    st2 = readTokenFromFile("data/pure/mail2");
-    st3 = readTokenFromFile("data/pure/mail3");
-    st4 = readTokenFromFile("data/pure/mail1");
-    addToSimilar(sim, 0, st1, hashtable);
-    addToSimilar(sim, 1, st2, hashtable);
-    addToSimilar(sim, 2, st3, hashtable);
-    addToSimilar(sim, 3, st4, hashtable);
-
-    printf("%f\n", getSimilarity(sim, 0, 1));
-    printf("%f\n", getSimilarity(sim, 0, 2));
-    printf("%f\n", getSimilarity(sim, 0, 3));
-    printf("%d\n", COLLISION_CNT);
+    char buf[30];
+    for(int id=1; id<=10000; id++){
+        str2token *st;
+        sprintf(buf,"data/pure/mail%d",id);
+        st = readTokenFromFile(buf);
+        /* addToSimilar(sim, id-1, st, hashtable); */
+        for(int t=0;t<st->sz;t++){
+            addMailToToken(hashtable, st->token[t], id);
+        }
+    }
+    /* printf("%f\n", getSimilarity(sim, 0, 99)); */
+    /* printf("%f\n", getSimilarity(sim, 44, 55)); */
+    /* printf("%f\n", getSimilarity(sim, 22, 33)); */
+    /*  */
     // */
-    /*
-    For testing, k5 is intented to be a key not inserted
-    char k1[100] = "Hello!"; int v1 = 41;
-    char k2[100] = "Hi!";    int v2 = 37;
-    char k3[100] = "Howdy!"; int v3 = 29;
-    char k4[100] = "Hola!";  int v4 = 13;
-    char k5[100] = "Aloha!";
-    llist** table = initTable();
-    addMailToToken(table, k1, v1);
-    addMailToToken(table, k1, v2);
-    addMailToToken(table, k2, v2);
-    addMailToToken(table, k3, v3);
-    addMailToToken(table, k4, v4);
-    printf("getMailCnt():\n");
-    printf("%d\n", getMailCnt(table, k1));
-    printf("%d\n", getMailCnt(table, k2));
-    printf("%d\n", getMailCnt(table, k3));
-    printf("%d\n", getMailCnt(table, k4));
-    printf("%d\n", getMailCnt(table, k5));
-    printf("getMailArr():\n");
-    printf("%d\n", getMailArr(table, k1)[v1]);
-    printf("%d\n", getMailArr(table, k1)[v2]);
-    printf("%d\n", getMailArr(table, k1)[v3]);
-    printf("%d\n", getMailArr(table, k1)[v4]);
-    // */
+    // For testing, k5 is intented to be a key not inserted
+    //char k1[100] = "Hello!"; int v1 = 41;
+    //char k2[100] = "Hi!";    int v2 = 37;
+    //char k3[100] = "Howdy!"; int v3 = 29;
+    //char k4[100] = "Hola!";  int v4 = 13;
+    char k5[100] = "the";
+    //llist** table = initTable();
+    //addMailToToken(table, k1, v1);
+    //addMailToToken(table, k1, v2);
+    //addMailToToken(table, k2, v2);
+    //addMailToToken(table, k3, v3);
+    //addMailToToken(table, k4, v4);
+    //printf("getMailCnt():\n");
+    //printf("%d\n", getMailCnt(table, k1));
+    //printf("%d\n", getMailCnt(table, k2));
+    //printf("%d\n", getMailCnt(table, k3));
+    //printf("%d\n", getMailCnt(table, k4));
+    printf("%d\n", getMailCnt(hashtable, k5));
+    //printf("getMailArr():\n");
+    //printf("%d\n", getMailArr(table, k1)[v1]);
+    //printf("%d\n", getMailArr(table, k1)[v2]);
+    //printf("%d\n", getMailArr(table, k1)[v3]);
+    //printf("%d\n", getMailArr(table, k1)[v4]);
+
     return 0;
 }

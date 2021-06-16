@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAGIC_MUL 31
+#define MAGIC_MUL 37
 #define KEY_RANGE 1299827 // a large prime number
-#define KEY_SIZE 10005
+#define KEY_SIZE 55
 #define MAIL_N 10005
 
 const int transfer[128] = { // 16 per line
@@ -133,6 +133,26 @@ int getMailCnt(llist** table, char* key) {
     }
     return -1;
 }
+
+typedef struct{
+    int* mailTokenN; // number of unique tokens in each mail
+    double** table;  // MailN x MailN array of similarity
+}SimTable;
+
+SimTable* initSimilar(){
+    SimTable* similar = malloc(sizeof(SimTable));
+    similar->mailToken = calloc(MAIL_N,sizeof(int))
+    similar->table = calloc(MAIL_N,sizeof(float*));
+    for(int i=0;i<MAIL_N;i++){
+        similar->table[i] = calloc(MAIL_N,sizeof(float));
+    }
+    return similar;
+}
+// Add a mail to the similar table, using the hashtable
+void addToSimilar(SimTable* sim, int mailID, char** tokens, llist** hash){
+
+}
+
 
 int main() {
     char k1[100] = "Hello!"; int v1 = 41;

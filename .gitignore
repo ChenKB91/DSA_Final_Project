@@ -8,3 +8,4 @@ data/*
 .vscode/
 ## xlsx temp file
 ~$*
+*.tar.gz

@@ -7,6 +7,7 @@
 #define KEY_RANGE 300007 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
+#define GROUP_N 16
 
 /*
 Prime number source: https://primes.utm.edu/lists/small/100000.txt
@@ -19,9 +20,9 @@ const int transfer[128] = { // 16 per line
     -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
      0,  2,  1,  0,  0,  0,  0,  0,   0,  0, -1, -1, -1, -1, -1, -1,
     -1, 14,  8, 10,  3,  2,  6,  1,   5, 11,  0,  0,  3,  4,  1, 12,
-     7,  0,  4, 13, -1,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1,
+     7,  0,  4, 13, 15,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1,
     -1, 14,  8, 10,  3,  2,  6,  1,   5, 11,  0,  0,  3,  4,  1, 12,
-     7,  0,  4, 13, -1,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1
+     7,  0,  4, 13, 15,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1
 };
 
 // Count collision times during addMailToToken()
@@ -84,8 +85,8 @@ llist* newDict() {
 
 llist** initTable() {
     // Returns a table, each element is a hash table
-    llist** table = malloc(15*sizeof(llist*));
-    for (int i=0; i<15; i++) {
+    llist** table = malloc(GROUP_N*sizeof(llist*));
+    for (int i=0; i<GROUP_N; i++) {
         table[i] = newDict();
     }
     return table;
@@ -111,7 +112,10 @@ void addMailToToken(llist** table, char* key, int mail_id) {
     // Creates a new key if doesn't exist
     llist* dict = table[transfer[key[0]]];
     int idx = hashStr(key);
+    // printf("belongs to dictionary %d\n", transfer[key[0]]);
+    // printf("t dictionary %d\n", transfer['t']);
     node* cur_node = dict[idx].head;
+    // printf("adding %s\n", key);
     while (cur_node) {
         if (strcmp(key, cur_node->key) == 0) {
             if (!cur_node->mail_arr[mail_id]) {
@@ -193,7 +197,10 @@ void addToSimilar(SimTable* sim, int mailID, str2token* st, llist** hashTable){
     int prev_collision = COLLISION_CNT;
     for(int i=0;i<st->sz;i++){
         char *key = st->token[i];
+        // printf("===start===\n");
+        // printf("%s\n", key);
         addMailToToken(hashTable, key, mailID);
+        // printf("=== end ===\n");
         if (COLLISION_CNT > prev_collision){ // if the inserted key is already in there
             prev_collision = COLLISION_CNT;
         }else{
@@ -208,6 +215,7 @@ void addToSimilar(SimTable* sim, int mailID, str2token* st, llist** hashTable){
         }
     }
     sim->uniqToken[mailID] = st->sz - COLLISION_CNT;
+    // printf("Howdy_end!\n");
 }
 
 double getSimilarity(SimTable* sim, int id1, int id2){
@@ -217,24 +225,27 @@ double getSimilarity(SimTable* sim, int id1, int id2){
 }
 
 int main() {
-   
+    // /*
     llist** hashtable = initTable();
     SimTable* sim = initSimilar();
-    
+
+
     str2token *st1, *st2, *st3, *st4;
     st1 = readTokenFromFile("data/pure/mail1");
     st2 = readTokenFromFile("data/pure/mail2");
     st3 = readTokenFromFile("data/pure/mail3");
     st4 = readTokenFromFile("data/pure/mail1");
+    // printf("Howdy_main!\n");
     addToSimilar(sim, 0, st1, hashtable);
     addToSimilar(sim, 1, st2, hashtable);
     addToSimilar(sim, 2, st3, hashtable);
     addToSimilar(sim, 3, st4, hashtable);
 
-    printf("%d\n", getSimilarity(sim, 0, 1));
-    printf("%d\n", getSimilarity(sim, 0, 2));
-    printf("%d\n", getSimilarity(sim, 0, 3));
+    printf("%f\n", getSimilarity(sim, 0, 1));
+    printf("%f\n", getSimilarity(sim, 0, 2));
+    printf("%f\n", getSimilarity(sim, 0, 3));
 
+    // */
     // For testing, k5 is intented to be a key not inserted
     //char k1[100] = "Hello!"; int v1 = 41;
     //char k2[100] = "Hi!";    int v2 = 37;

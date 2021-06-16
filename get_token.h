@@ -28,3 +28,19 @@ void get_token(str2token* st, char* s) {
     st->token = realloc(st->token,st->sz*sizeof(char*));
     return;
 }
+
+str2token* readTokenFromFile(char* filename){
+    FILE* fp;
+    fp = fopen(filename, "r");
+    long size;
+    fseek(fp, 0, SEEK_END); 
+    size = ftell(fp);
+    fseek(fp, 0, SEEK_SET); 
+    char* buf = malloc(size);
+    fread(buf, 1, size, fp);
+    
+    str2token* st = malloc(sizeof(str2token));
+    get_token(st, buf);
+    fclose(fp);
+    return st;
+}

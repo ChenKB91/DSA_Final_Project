@@ -7,7 +7,7 @@
 #define KEY_RANGE 1000003 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
-#define GROUP_N 16
+#define GROUP_N 17
 
 /*
 Prime number source: https://primes.utm.edu/lists/small/100000.txt
@@ -18,11 +18,22 @@ const int transfer[128] = { // 16 per line
     -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
-     0,  2,  1,  0,  0,  0,  0,  0,   0,  0, -1, -1, -1, -1, -1, -1,
-    -1, 14,  8, 10,  3,  2,  6,  1,   5, 11,  0,  0,  3,  4,  1, 12,
-     7,  0,  4, 13, 15,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1,
-    -1, 14,  8, 10,  3,  2,  6,  1,   5, 11,  0,  0,  3,  4,  1, 12,
-     7,  0,  4, 13, 15,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1
+     0,  4,  1,  1,  1,  1,  0,  0,   0,  0, -1, -1, -1, -1, -1, -1,
+    -1, 12, 11, 15,  9,  5,  5,  7,   7,  4,  1,  6,  6, 14,  3,  2,
+    13,  0,  8, 16, 10,  2,  2,  3,   0,  0,  0, -1, -1, -1, -1, -1,
+    -1, 12, 11, 15,  9,  5,  5,  7,   7,  4,  1,  6,  6, 14,  3,  2,
+    13,  0,  8, 16, 10,  2,  2,  3,   0,  0,  0, -1, -1, -1, -1, -1
+};
+
+const int toInt[128] = { // 16 per line
+    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
+    27, 28, 29, 30, 31, 32, 33, 34,  35, 36, -1, -1, -1, -1, -1, -1,
+    -1,  1,  2,  3,  4,  5,  6,  7,   8,  9, 10, 11, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23,  24, 25, 26, -1, -1, -1, -1, -1,
+    -1,  1,  2,  3,  4,  5,  6,  7,   8,  9, 10, 11, 12, 13, 14, 15,
+    16, 17, 18, 19, 20, 21, 22, 23,  24, 25, 26, -1, -1, -1, -1, -1
 };
 
 // Count collision times during addMailToToken()
@@ -32,6 +43,7 @@ int hashStr(char* s) {
     long long int hash = 0;
     while (*s) {
         hash = (MAGIC_MUL*hash+(*s++)) % KEY_RANGE;
+        // hash = (37*hash+(toInt[*s++])) % KEY_RANGE;
     }
     return hash;
 }
@@ -74,7 +86,6 @@ typedef struct __llist__ {
 
 llist* newDict() {
     // Returns a dictionary / hash table
-    // There seems to be some problem using calloc (Not Sure)
     llist* dict = calloc(KEY_RANGE, sizeof(llist));
     // llist* dict = malloc(KEY_RANGE*sizeof(llist));
     // for (int i=0; i<KEY_RANGE; i++) {
@@ -122,6 +133,7 @@ node* getTokenNode(llist** table, char* key) {
             return cur_node;
         } else {
             COLLISION_CNT+=1;
+            // printf("%s %s\n", key, cur_node->key);
             cur_node = cur_node->nxt;
         }
     }
@@ -177,15 +189,15 @@ int main() {
     llist** hashtable = initTable();
     SimTable* sim = initSimilar();
     char buf[30];
-    for(int id=1; id<=2000; id++){
+    for(int id=1; id<=10000; id++){
         str2token *st;
         sprintf(buf,"data/pure/mail%d",id);
         st = readTokenFromFile(buf);
-        addToSimilar(sim, id-1, st, hashtable);
-        // for(int t=0;t<st->sz;t++){
-        //     node* key_node = getTokenNode(hashtable, st->token[t]);
-        //     addMailToToken(key_node, id);
-        // }
+        // addToSimilar(sim, id-1, st, hashtable);
+        for(int t=0;t<st->sz;t++){
+            node* key_node = getTokenNode(hashtable, st->token[t]);
+            addMailToToken(key_node, id);
+        }
     }
     /* printf("%f\n", getSimilarity(sim, 0, 99)); */
     /* printf("%f\n", getSimilarity(sim, 44, 55)); */
@@ -196,7 +208,7 @@ int main() {
     printf("%d\n", getTokenNode(hashtable, k5)->mail_cnt);
     printf("Multiply: %d\n", MAGIC_MUL);
     printf("Modulo: %d\n", KEY_RANGE);
-    printf("%d\n", COLLISION_CNT);
+    printf("Collision: %d\n", COLLISION_CNT);
 
     return 0;
 }

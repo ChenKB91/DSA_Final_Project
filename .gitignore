@@ -9,3 +9,5 @@ data/*
 ## xlsx temp file
 ~$*
 *.tar.gz
+## gporf file
+gmon.out 

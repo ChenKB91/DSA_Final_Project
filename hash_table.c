@@ -3,8 +3,8 @@
 #include <string.h>
 #include "get_token.h"
 
-#define MAGIC_MUL 37
-#define KEY_RANGE 300007 // a large prime number
+#define MAGIC_MUL 149
+#define KEY_RANGE 1000003 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 16
@@ -75,11 +75,11 @@ typedef struct __llist__ {
 llist* newDict() {
     // Returns a dictionary / hash table
     // There seems to be some problem using calloc (Not Sure)
-    // llist* dict = calloc(KEY_RANGE, sizeof(llist));
-    llist* dict = malloc(KEY_RANGE*sizeof(llist));
-    for (int i=0; i<KEY_RANGE; i++) {
-        dict[i].head = NULL;
-    }
+    llist* dict = calloc(KEY_RANGE, sizeof(llist));
+    // llist* dict = malloc(KEY_RANGE*sizeof(llist));
+    // for (int i=0; i<KEY_RANGE; i++) {
+    //     dict[i].head = NULL;
+    // }
     return dict;
 }
 
@@ -92,86 +92,40 @@ llist** initTable() {
     return table;
 }
 
-void newKey(llist** table, char* key, int mail_id) {
+node* newKey(llist* chain, char* key) {
     // Add new key
-    llist* dict = table[transfer[key[0]]];
     node* new = malloc(sizeof(node));
-    int idx = hashStr(key);
     strcpy(new->key, key);
-    new->mail_cnt = 1;
+    new->mail_cnt = 0;
     new->mail_list = newMlist();
-    mlistInsert(new->mail_list, mail_id);
     memset(new->mail_arr, 0, MAIL_N);
-    new->mail_arr[mail_id] = 1;
-    new->nxt = dict[idx].head;
-    dict[idx].head = new;
+    new->nxt = chain->head;
+    chain->head = new;
+    return new;
 }
 
-void addMailToToken(llist** table, char* key, int mail_id) {
+void addMailToToken(node* token_node, int mail_id) {
     // Add a mail_id by token
-    // Creates a new key if doesn't exist
-    llist* dict = table[transfer[key[0]]];
-    int idx = hashStr(key);
-    node* cur_node = dict[idx].head;
-    while (cur_node) {
-        if (strcmp(key, cur_node->key) == 0) {
-            if (!cur_node->mail_arr[mail_id]) {
-                cur_node->mail_cnt++;
-                cur_node->mail_arr[mail_id] = 1;
-                mlistInsert(cur_node->mail_list, mail_id);
-            }
-            return;
-        } else {
-            cur_node = cur_node->nxt;
-            COLLISION_CNT++;
-        }
+    if (!token_node->mail_arr[mail_id]) {
+        token_node->mail_cnt++;
+        token_node->mail_arr[mail_id] = 1;
+        mlistInsert(token_node->mail_list, mail_id);
     }
-    newKey(table, key, mail_id);
 }
 
-mlist* getMails(llist** table, char* key) {
-    // Get linked list of mails
+node* getTokenNode(llist** table, char* key) {
     llist* dict = table[transfer[key[0]]];
     int idx = hashStr(key);
     node* cur_node = dict[idx].head;
     while (cur_node) {
         if (strcmp(key, cur_node->key) == 0) {
-            return cur_node->mail_list;
+            return cur_node;
         } else {
+            COLLISION_CNT+=1;
             cur_node = cur_node->nxt;
         }
     }
-    return NULL;
-}
-
-int* getMailArr(llist** table, char* key) {
-    // Get array of mails
-    llist* dict = table[transfer[key[0]]];
-    int idx = hashStr(key);
-    node* cur_node = dict[idx].head;
-    while (cur_node) {
-        if (strcmp(key, cur_node->key) == 0) {
-            return cur_node->mail_arr;
-        } else {
-            cur_node = cur_node->nxt;
-        }
-    }
-    return NULL;
-}
-
-int getMailCnt(llist** table, char* key) {
-    // Get number of mails
-    llist* dict = table[transfer[key[0]]];
-    int idx = hashStr(key);
-    node* cur_node = dict[idx].head;
-    while (cur_node) {
-        if (strcmp(key, cur_node->key) == 0) {
-            return cur_node->mail_cnt;
-        } else {
-            cur_node = cur_node->nxt;
-        }
-    }
-    return -1;
+    return newKey(&dict[idx], key);
 }
 
 typedef struct{
@@ -194,13 +148,14 @@ void addToSimilar(SimTable* sim, int mailID, str2token* st, llist** hashTable){
     int prev_collision = COLLISION_CNT;
     for(int i=0;i<st->sz;i++){
         char *key = st->token[i];
-        addMailToToken(hashTable, key, mailID);
+        node* key_node = getTokenNode(hashTable, key);
+        addMailToToken(key_node, mailID);
         if (COLLISION_CNT > prev_collision){ // if the inserted key is already in there
             prev_collision = COLLISION_CNT;
         }else{
-            int cnt = getMailCnt(hashTable, key);
+            int cnt = key_node->mail_cnt; // getMailCnt(hashTable, key, key_hash);
             if(cnt!=-1){
-                mnode* mail = getMails(hashTable, key)->head;
+                mnode* mail = key_node->mail_list->head; // getMails(hashTable, key, key_hash)->head;
                 for( ;mail!=NULL;mail=mail->nxt ){
                     sim->table[mailID][mail->mail_id] += 1;
                     sim->table[mail->mail_id][mailID] += 1;
@@ -222,43 +177,26 @@ int main() {
     llist** hashtable = initTable();
     SimTable* sim = initSimilar();
     char buf[30];
-    for(int id=1; id<=10000; id++){
+    for(int id=1; id<=2000; id++){
         str2token *st;
         sprintf(buf,"data/pure/mail%d",id);
         st = readTokenFromFile(buf);
-        /* addToSimilar(sim, id-1, st, hashtable); */
-        for(int t=0;t<st->sz;t++){
-            addMailToToken(hashtable, st->token[t], id);
-        }
+        addToSimilar(sim, id-1, st, hashtable);
+        // for(int t=0;t<st->sz;t++){
+        //     node* key_node = getTokenNode(hashtable, st->token[t]);
+        //     addMailToToken(key_node, id);
+        // }
     }
     /* printf("%f\n", getSimilarity(sim, 0, 99)); */
     /* printf("%f\n", getSimilarity(sim, 44, 55)); */
     /* printf("%f\n", getSimilarity(sim, 22, 33)); */
     /*  */
     // */
-    // For testing, k5 is intented to be a key not inserted
-    //char k1[100] = "Hello!"; int v1 = 41;
-    //char k2[100] = "Hi!";    int v2 = 37;
-    //char k3[100] = "Howdy!"; int v3 = 29;
-    //char k4[100] = "Hola!";  int v4 = 13;
     char k5[100] = "the";
-    //llist** table = initTable();
-    //addMailToToken(table, k1, v1);
-    //addMailToToken(table, k1, v2);
-    //addMailToToken(table, k2, v2);
-    //addMailToToken(table, k3, v3);
-    //addMailToToken(table, k4, v4);
-    //printf("getMailCnt():\n");
-    //printf("%d\n", getMailCnt(table, k1));
-    //printf("%d\n", getMailCnt(table, k2));
-    //printf("%d\n", getMailCnt(table, k3));
-    //printf("%d\n", getMailCnt(table, k4));
-    printf("%d\n", getMailCnt(hashtable, k5));
-    //printf("getMailArr():\n");
-    //printf("%d\n", getMailArr(table, k1)[v1]);
-    //printf("%d\n", getMailArr(table, k1)[v2]);
-    //printf("%d\n", getMailArr(table, k1)[v3]);
-    //printf("%d\n", getMailArr(table, k1)[v4]);
+    printf("%d\n", getTokenNode(hashtable, k5)->mail_cnt);
+    printf("Multiply: %d\n", MAGIC_MUL);
+    printf("Modulo: %d\n", KEY_RANGE);
+    printf("%d\n", COLLISION_CNT);
 
     return 0;
 }

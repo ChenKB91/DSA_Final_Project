@@ -3,9 +3,13 @@
 #include <string.h>
 
 #define MAGIC_MUL 31
-#define KEY_RANGE 1299827 // a large prime number
-#define KEY_SIZE 10005
+#define KEY_RANGE 300007 // a large prime number
+#define KEY_SIZE 55
 #define MAIL_N 10005
+
+/*
+Prime number source: https://primes.utm.edu/lists/small/100000.txt
+*/
 
 const int transfer[128] = { // 16 per line
     -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1,
@@ -17,6 +21,8 @@ const int transfer[128] = { // 16 per line
     -1, 14,  8, 10,  3,  2,  6,  1,   5, 11,  0,  0,  3,  4,  1, 12,
      7,  0,  4, 13, -1,  1,  0,  9,   0,  0,  0, -1, -1, -1, -1, -1
 };
+
+int COLLISION_CNT = 0;
 
 
 int hashStr(char* s) {
@@ -52,7 +58,7 @@ void mlistInsert(mlist* l, int mail_id) {
 typedef struct __node__ {
     char key[KEY_SIZE];
     int mail_cnt;
-    // int mail_arr[MAIL_N];
+    int mail_arr[MAIL_N];
     mlist* mail_list;
     struct __node__* nxt;
 } node;
@@ -86,6 +92,8 @@ void newKey(llist** table, char* key, int mail_id) {
     new->mail_cnt = 1;
     new->mail_list = newMlist();
     mlistInsert(new->mail_list, mail_id);
+    memset(new->mail_arr, 0, MAIL_N);
+    new->mail_arr[mail_id] = 1;
     new->nxt = dict[idx].head;
     dict[idx].head = new;
 }
@@ -96,11 +104,15 @@ void addMailToToken(llist** table, char* key, int mail_id) {
     node* cur_node = dict[idx].head;
     while (cur_node) {
         if (strcmp(key, cur_node->key) == 0) {
-            cur_node->mail_cnt++;
-            mlistInsert(cur_node->mail_list, mail_id);
+            if (!cur_node->mail_arr[mail_id]) {
+                cur_node->mail_cnt++;
+                cur_node->mail_arr[mail_id] = 1;
+                mlistInsert(cur_node->mail_list, mail_id);
+            }
             return;
         } else {
             cur_node = cur_node->nxt;
+            COLLISION_CNT++;
         }
     }
     newKey(table, key, mail_id);

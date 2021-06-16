@@ -5,3 +5,6 @@ a.out
 ## vim temp file
 *~
 data/*
+.vscode/
+## xlsx temp file
+~$*

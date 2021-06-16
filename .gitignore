@@ -4,3 +4,4 @@ a.out
 *.exe
 ## vim temp file
 *~
+data/*

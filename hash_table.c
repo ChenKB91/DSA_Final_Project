@@ -4,7 +4,7 @@
 #include "get_token.h"
 
 #define MAGIC_MUL 149
-#define KEY_RANGE 1000003 // a large prime number
+#define KEY_RANGE 10000019 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 17

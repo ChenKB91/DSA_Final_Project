@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define MAGIC_MUL 31
-#define KEY_RANGE 1000000007
+#define KEY_RANGE 1299827 // a large prime number
 #define KEY_SIZE 10005
 #define MAIL_N 10005
 
@@ -62,18 +62,21 @@ typedef struct __llist__ {
 } llist;
 
 llist* newDict() {
-    llist* dict = calloc(KEY_RANGE, sizeof(llist));
+    // llist* dict = calloc(KEY_RANGE, sizeof(llist));
+    llist* dict = malloc(KEY_RANGE*sizeof(llist));
+    for (int i=0; i<KEY_RANGE; i++) {
+        dict[i].head = NULL;
+    }
     return dict;
 }
 
 llist** initTable() {
     llist** table = malloc(15*sizeof(llist*));
     for (int i=0; i<15; i++) {
-        table[i] = calloc(KEY_RANGE, sizeof(llist));
+        table[i] = newDict();
     }
     return table;
 }
-
 
 void newKey(llist** table, char* key, int mail_id) {
     llist* dict = table[transfer[key[0]]];

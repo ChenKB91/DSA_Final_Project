@@ -42,7 +42,7 @@ mlist* newMlist () {
     return new;
 }
 
-void mlistInsertTail(mlist* l, int mail_id) {
+void mlistInsert(mlist* l, int mail_id) {
     mnode* new = malloc(sizeof(mnode));
     new->mail_id = mail_id;
     new->nxt = l->head;
@@ -82,9 +82,25 @@ void newKey(llist** table, char* key, int mail_id) {
     strcpy(new->key, key);
     new->mail_cnt = 1;
     new->mail_list = newMlist();
-    mlistInsertTail(new->mail_list, mail_id);
+    mlistInsert(new->mail_list, mail_id);
     new->nxt = dict[idx].head;
     dict[idx].head = new;
+}
+
+void addMailToToken(llist** table, char* key, int mail_id) {
+    llist* dict = table[transfer[key[0]]];
+    int idx = hashStr(key);
+    node* cur_node = dict[idx].head;
+    while (cur_node) {
+        if (strcmp(key, cur_node->key) == 0) {
+            cur_node->mail_cnt++;
+            mlistInsert(cur_node->mail_list, mail_id);
+            return;
+        } else {
+            cur_node = cur_node->nxt;
+        }
+    }
+    newKey(table, key, mail_id);
 }
 
 mlist* getMails(llist** table, char* key) {
@@ -122,10 +138,11 @@ int main() {
     char k4[100] = "Hola!";  int v4 = 13;
     char k5[100] = "Aloha!";
     llist** table = initTable();
-    newKey(table, k1, v1);
-    newKey(table, k2, v2);
-    newKey(table, k3, v3);
-    newKey(table, k4, v4);
+    addMailToToken(table, k1, v1);
+    addMailToToken(table, k1, v2);
+    addMailToToken(table, k2, v2);
+    addMailToToken(table, k3, v3);
+    addMailToToken(table, k4, v4);
     printf("%d\n", getMailCnt(table, k1));
     printf("%d\n", getMailCnt(table, k2));
     printf("%d\n", getMailCnt(table, k3));

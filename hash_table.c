@@ -3,7 +3,7 @@
 #include <string.h>
 #include "get_token.h"
 
-#define MAGIC_MUL 149
+#define MAGIC_MUL 8923 // 1361=>168 4583=>142 8923=>103
 #define KEY_RANGE 10000019 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
@@ -43,7 +43,6 @@ int hashStr(char* s) {
     long long int hash = 0;
     while (*s) {
         hash = (MAGIC_MUL*hash+(*s++)) % KEY_RANGE;
-        // hash = (37*hash+(toInt[*s++])) % KEY_RANGE;
     }
     return hash;
 }

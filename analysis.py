@@ -7,7 +7,7 @@ chars = chars + [str(i) for i in range(10)]
 count = dict()
 
 for c in chars:
-    with open(f"{c}.txt", "r") as file:
+    with open(f"token_split_into_prefix/{c}.txt", "r") as file:
         tokens = file.readlines()
         unique = set(tokens)
         count[c] = len(unique)

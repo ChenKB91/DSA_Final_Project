@@ -1,18 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "get_token.h"
-#include "hash_table.h"
 
-/*
-#define MAGIC_MUL 4583 // 1361=>168 4583=>142 8923=>103
+#define MAGIC_MUL 1361 // 1361=>168 4583=>142 8923=>103
 #define KEY_RANGE 10000019 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 17
-
-
-// Prime number source: https://primes.utm.edu/lists/small/100000.txt
 
 // Get index of the hash table by char
 const int transfer[128] = { // 16 per line
@@ -122,83 +116,9 @@ node* getTokenNode(llist** table, char* key) {
             return cur_node;
         } else {
             COLLISION_CNT+=1;
-            printf("%s %s\n", key, cur_node->key);
+            // printf("%s %s\n", key, cur_node->key);
             cur_node = cur_node->nxt;
         }
     }
     return newKey(&dict[idx], key);
-}
-// */
-
-typedef struct{
-    int* uniqToken; // number of unique tokens in each mail
-    int** table;  // MailN x MailN array, intersecting tokens
-}SimTable;
-
-SimTable* initSimilar(){
-    SimTable* similar = malloc(sizeof(SimTable));
-    similar->uniqToken = calloc(MAIL_N,sizeof(int));
-    similar->table = calloc(MAIL_N,sizeof(int*));
-    for(int i=0;i<MAIL_N;i++){
-        similar->table[i] = calloc(MAIL_N,sizeof(int));
-    }
-    return similar;
-}
-// Add a mail to the similar table, using the hashtable
-void addToSimilar(SimTable* sim, int mailID, str2token* st, llist** hashTable){
-    COLLISION_CNT = 0;
-    int prev_collision = COLLISION_CNT;
-    for(int i=0;i<st->sz;i++){
-        char *key = st->token[i];
-        node* key_node = getTokenNode(hashTable, key);
-        addMailToToken(key_node, mailID);
-        if (COLLISION_CNT > prev_collision){ // if the inserted key is already in there
-            prev_collision = COLLISION_CNT;
-        }else{
-            int cnt = key_node->mail_cnt; // getMailCnt(hashTable, key, key_hash);
-            if(cnt!=-1){
-                mnode* mail = key_node->mail_list->head; // getMails(hashTable, key, key_hash)->head;
-                for( ;mail!=NULL;mail=mail->nxt ){
-                    sim->table[mailID][mail->mail_id] += 1;
-                    sim->table[mail->mail_id][mailID] += 1;
-                }
-            }
-        }
-    }
-    sim->uniqToken[mailID] = st->sz - COLLISION_CNT;
-}
-
-double getSimilarity(SimTable* sim, int id1, int id2){
-    int inter = sim->table[id1][id2];
-    int onion = sim->uniqToken[id1] + sim->uniqToken[id2] - inter; // union is a keyword Q_Q
-    return inter/(double)onion;
-}
-
-int main() {
-    // /*
-    llist** hashtable = initTable();
-    SimTable* sim = initSimilar();
-    char buf[30];
-    for(int id=1; id<=10000; id++){
-        str2token *st;
-        sprintf(buf,"data/pure/mail%d",id);
-        st = readTokenFromFile(buf);
-        // addToSimilar(sim, id-1, st, hashtable);
-        for(int t=0;t<st->sz;t++){
-            node* key_node = getTokenNode(hashtable, st->token[t]);
-            addMailToToken(key_node, id);
-        }
-    }
-    /* printf("%f\n", getSimilarity(sim, 0, 99)); */
-    /* printf("%f\n", getSimilarity(sim, 44, 55)); */
-    /* printf("%f\n", getSimilarity(sim, 22, 33)); */
-    /*  */
-    // */
-    char k5[100] = "the";
-    printf("%d\n", getTokenNode(hashtable, k5)->mail_cnt);
-    printf("Multiply: %d\n", MAGIC_MUL);
-    printf("Modulo: %d\n", KEY_RANGE);
-    printf("Collision: %d\n", COLLISION_CNT);
-
-    return 0;
 }

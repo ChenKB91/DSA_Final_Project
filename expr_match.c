@@ -1,19 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "hash_table.h"
 
-// typedef struct __node__ {
-//     char key[KEY_SIZE];
-//     int mail_cnt; // Number of mails with this token
-//     int mail_arr[MAIL_N]; // Marking if a mail have this token
-//     mlist* mail_list; // All mails with this token (in linked list)
-//     struct __node__* nxt;
-// } node;
-
-// typedef struct __llist__ {
-//     node* head;
-// } llist;
-
-// node* getTokenNode(llist** table, char* key);
 int precedence(char c) {
     switch (c) {
         case '(': case ')':
@@ -35,7 +23,6 @@ char* toPostfix(char* expr) {
     char* postfix = malloc(5000*sizeof(char));
     int post_idx = 0;
     while (*expr) {
-        printf("%c\n", *expr);
         switch (*expr) {
             case '(':
                 stk[++tp] = *expr;
@@ -72,6 +59,43 @@ char* toPostfix(char* expr) {
     }
     postfix[post_idx++] = '\0';
     return postfix;
+}
+
+void eval(char *expr, int* ans_arr, llist**table) {
+    char *postfix = toPostfix(expr);
+    char *c = postfix;
+    int stk[3000][MAIL_N];
+    int tp=-1;
+    while (*c) {
+        char buf[55];
+        int idx=0;
+        switch (*c) {
+            case '!':
+                for (int i=0; i<MAIL_N; i++)
+                    stk[tp][i] = 1-stk[tp][i];
+                break;
+            case '&':
+                for (int i=0; i<MAIL_N; i++)
+                    stk[tp-1][i] = (stk[tp][i]&&stk[tp-1][i]);
+                tp--;
+                break;
+            case '|':
+                for (int i=0; i<MAIL_N; i++)
+                    stk[tp-1][i] = (stk[tp][i]||stk[tp-1][i]);
+                tp--;
+                break;
+            default:
+                while (*c != ',')
+                    buf[idx++] = *c++;
+                buf[idx] = '\0';
+                tp++; c++;
+                node* buf_node = getTokenNode(table, buf);
+                memcpy(stk[tp], buf_node->mail_arr, MAIL_N);
+                break;
+        }
+    }
+    memcpy(ans_arr, stk, MAIL_N);
+    free(postfix);
 }
 
 int main(){

@@ -23,7 +23,7 @@ all_token = sorted(list(all_token))
 # print(primes[10000])
 # exit()
 
-mult_list = primes[:10000]
+mult_list = primes[:100]
 # mult_list = [8923]
 rem = 10000019
 threshold = 400

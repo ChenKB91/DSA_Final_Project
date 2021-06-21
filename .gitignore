@@ -1,4 +1,4 @@
-test_env/
+test_env/testdata/
 test_env.zip
 a.out
 *.exe

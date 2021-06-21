@@ -61,10 +61,11 @@ char* toPostfix(char* expr) {
     return postfix;
 }
 
-void eval(char *expr, int* ans_arr, llist**table) {
+int stk[3000][MAIL_N];
+
+int exprEval(char *expr, int* ans_arr, llist**table, int mail_n) {
     char *postfix = toPostfix(expr);
     char *c = postfix;
-    int stk[3000][MAIL_N];
     int tp=-1;
     while (*c) {
         char buf[55];
@@ -88,20 +89,50 @@ void eval(char *expr, int* ans_arr, llist**table) {
                 while (*c != ',')
                     buf[idx++] = *c++;
                 buf[idx] = '\0';
-                tp++; c++;
+                tp++;
                 node* buf_node = getTokenNode(table, buf);
                 memcpy(stk[tp], buf_node->mail_arr, MAIL_N);
+                idx=0;
                 break;
         }
+        c++;
     }
     memcpy(ans_arr, stk, MAIL_N);
+    int cnt=0;
+    for (int i=0; i<mail_n; i++) {
+        if (stk[0][i])
+            ans_arr[cnt++] = i;
+    }
     free(postfix);
+    return cnt;
 }
 
 int main(){
-    char expr[2048] = "(!chard)|(pontifex)";
-    char* pst;
-    pst = toPostfix(expr);
-    printf("%s\n", pst);
+    char expr[2048] = "(chard)&(pontifex)";
+    char key1[50] = "chard";
+    char key2[50] = "pontifex";
+    char key3[50] = "howdy";
+    char key4[50] = "clementson";
+    char key5[50] = "montitvo";
+    char key6[50] = "amenities";
+    llist** hashtable = initTable();
+    node* token_node = getTokenNode(hashtable, key1);
+    addMailToToken(token_node, 0);
+    addMailToToken(token_node, 1);
+    addMailToToken(token_node, 2);
+    token_node = getTokenNode(hashtable, key2);
+    addMailToToken(token_node, 1);
+    addMailToToken(token_node, 2);
+    addMailToToken(token_node, 3);
+    addMailToToken(token_node, 4);
+    token_node = getTokenNode(hashtable, key3);
+    addMailToToken(token_node, 3);
+    int ans_arr[MAIL_N];
+    int ans_len = exprEval(expr, ans_arr, hashtable, 5);
+    
+    for (int i=0; i<ans_len; i++) {
+        printf("%d, ", ans_arr[i]);
+    }
+    printf("\n");
     return 0;
 }

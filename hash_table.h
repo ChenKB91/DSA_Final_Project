@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAGIC_MUL 1361 // 1361=>168 4583=>142 8923=>103
+#define MAGIC_MUL 8923 // 1361=>168 4583=>142 8923=>103
 #define KEY_RANGE 10000019 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005

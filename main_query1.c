@@ -32,7 +32,7 @@ const int transfer[128] = { // 16 per line
 };
 
 // Count collision times during addMailToToken()
-int COLLISION_CNT = 0;
+// int COLLISION_CNT = 0;
 
 int hashStr(char* s) {
     long long int hash = 0;
@@ -109,12 +109,14 @@ node* newKey(llist* chain, char* key) {
     return new;
 }
 
-void addMailToToken(node* token_node, int mail_id) {
+void addMailToToken(node* token_node, int mail_id, int* counter) {
     // Add a mail_id by token
     if (!token_node->mail_arr[mail_id]) {
         token_node->mail_cnt++;
         token_node->mail_arr[mail_id] = 1;
         mlistInsert(token_node->mail_list, mail_id);
+    } else {
+        *counter++;
     }
 }
 
@@ -126,7 +128,7 @@ node* getTokenNode(llist** table, char* key) {
         if (strcmp(key, cur_node->key) == 0) {
             return cur_node;
         } else {
-            COLLISION_CNT+=1;
+            // COLLISION_CNT+=1;
             // printf("%s %s\n", key, cur_node->key);
             cur_node = cur_node->nxt;
         }

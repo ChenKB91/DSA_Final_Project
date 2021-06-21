@@ -11,9 +11,12 @@ query *queries;
 int main(void){
 	api.init(&n_mails, &n_queries, &mails, &queries);
 
-	for (int i = 0; i < n_queries; i++)
-		if (queries[i].type == expression_match)
+	for (int i = 0; i < n_queries; i++) {
+		if (queries[i].type == expression_match) {
+			printf("%d %d\n", i, queries[i].id);
 			api.answer(queries[i].id, NULL, 0);
+		}
+	}
 
 	return 0;
 }

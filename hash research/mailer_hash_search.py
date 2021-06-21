@@ -17,7 +17,7 @@ print("done reading!")
 
 mult_list = primes[:20]
 rem = 1000007
-# rem = 1000000
+rem = 100003
 
 def myHash(mult, rem, s):
     h = 0

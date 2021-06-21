@@ -249,7 +249,7 @@ int main(void){
 
 	for (int i = 0; i < n_queries; i++)
 		if (queries[i].type == expression_match) {
-            char *expr = queries[i].data_expression_match_data;
+            char *expr = queries[i].data.expression_match_data.expression;
             int ans_cnt = exprEval(expr, query1_ans_arr, hashtable, n_mails);
             api.answer(queries[i].id, query1_ans_arr, ans_cnt);
         }

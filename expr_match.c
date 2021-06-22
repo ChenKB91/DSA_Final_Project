@@ -1,7 +1,8 @@
 // By: GWFrank
+#include "hash_table.h"
+#include "get_token.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "hash_table.h"
 
 int precedence(char c) {
     switch (c) {
@@ -108,32 +109,37 @@ int exprEval(char *expr, int* ans_arr, llist**table, int mail_n) {
     return cnt;
 }
 
+typedef struct mail {
+	int id;
+	char from[32], to[32];
+	char subject[256], content[100000];
+} mail;
+
 int main(){
-    char expr[2048] = "(chard)&(pontifex)";
-    char key1[50] = "chard";
-    char key2[50] = "pontifex";
-    char key3[50] = "howdy";
-    char key4[50] = "clementson";
-    char key5[50] = "montitvo";
-    char key6[50] = "amenities";
+    char expr[2048] = "!((clementson)|(!amenities)&(!montitvo))";
+    char key1[50] = "clementson";
+    char key2[50] = "amenities";
+    char key3[50] = "montitvo";
+    // char key4[50] = "d";
+    // char key5[50] = "e";
+    // char key6[50] = "f";
     llist** hashtable = initTable();
+    int* null_cnt = 0;
     node* token_node = getTokenNode(hashtable, key1);
-    addMailToToken(token_node, 0);
-    addMailToToken(token_node, 1);
-    addMailToToken(token_node, 2);
+    addMailToToken(token_node, 1, null_cnt);
+    addMailToToken(token_node, 3, null_cnt);
+    addMailToToken(token_node, 5, null_cnt);
+    addMailToToken(token_node, 7, null_cnt);
     token_node = getTokenNode(hashtable, key2);
-    addMailToToken(token_node, 1);
-    addMailToToken(token_node, 2);
-    addMailToToken(token_node, 3);
-    addMailToToken(token_node, 4);
+    addMailToToken(token_node, 2, null_cnt);
+    addMailToToken(token_node, 3, null_cnt);
+    addMailToToken(token_node, 6, null_cnt);
+    addMailToToken(token_node, 7, null_cnt);
     token_node = getTokenNode(hashtable, key3);
-    addMailToToken(token_node, 3);
-    int ans_arr[MAIL_N];
-    int ans_len = exprEval(expr, ans_arr, hashtable, 5);
-    
-    for (int i=0; i<ans_len; i++) {
-        printf("%d, ", ans_arr[i]);
-    }
-    printf("\n");
+    addMailToToken(token_node, 4, null_cnt);
+    addMailToToken(token_node, 5, null_cnt);
+    addMailToToken(token_node, 6, null_cnt);
+    addMailToToken(token_node, 7, null_cnt);
+
     return 0;
 }

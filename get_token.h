@@ -1,12 +1,13 @@
+// Code by hyder308116
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdbool.h>
 typedef struct {
-    int sub_sz, sz;
-    char **sub_token;
-    char **token;
+    int sub_sz, sz;  // size of sub_token and token
+    char **sub_token; // token get from subject
+    char **token; // token get from content
 } str2token;
 void get_token(str2token* st, mail* s) {
     int len = strlen(s->content);

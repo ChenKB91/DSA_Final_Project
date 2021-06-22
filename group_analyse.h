@@ -1,3 +1,4 @@
+// Code by hyder308116
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -41,6 +42,9 @@ void set_union(int x, int y) {
     return dsu[set_x].sz;
 }
 int* group_analyse(int n, mail* data, int *usr) {
+    // n: the amount of users
+    // data: mail information
+    // usr: index of mail in this analyse
     int gl[2] = {0}, ht[2];
     for (int i = 0; i < n; i++) {
         ht[0] = str_hash(mail[usr[i]]->from);

@@ -15,6 +15,7 @@ void get_token(str2token* st, mail* s) {
     st->token = malloc(len*sizeof(char*)/2);
     st->sz = 0;
     for (int i = 0; i <= len; i++) {
+        if (s->content[i] <= 'Z' && s->content[i] >= 'A') s->content[i] += 32;
         if (isdigit(s->content[i]) || isalpha(s->content[i])) {
             if (last == -1)
                 last = i;
@@ -33,6 +34,7 @@ void get_token(str2token* st, mail* s) {
     st->sub_token = malloc(len*sizeof(char*)/2);
     st->sub_sz = 0;
     for (int i = 0; i <= len; i++) {
+        if (s->subject[i] <= 'Z' && s->subject[i] >= 'A') s->subject[i] += 32;
         if (isdigit(s->subject[i]) || isalpha(s->subject[i])) {
             if(last == -1)
                 last = i;

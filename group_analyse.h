@@ -40,11 +40,11 @@ void set_union(int x, int y) {
     }
     return dsu[set_x].sz;
 }
-int* group_analyse(int n, char ***data) {
+int* group_analyse(int n, mail* data, int *usr) {
     int gl[2] = {0}, ht[2];
     for (int i = 0; i < n; i++) {
-        ht[0] = str_hash(data[i][0]);
-        ht[1] = str_hash(data[i][1]);
+        ht[0] = str_hash(mail[usr[i]]->from);
+        ht[1] = str_hash(mail[usr[i]]->to);
         for (int j = 0; j < 2; j++) {
             if (!dsu_fill[ht[j]]) {
                 dsu_fill[ht[j]] = 1;

@@ -30,7 +30,7 @@ void get_token(str2token* st, mail* s) {
     st->token = realloc(st->token, st->sz*sizeof(char*));
     len = strlen(s->subject);
     last = -1;
-    st->sub_token = malloc(len*sizeof(char)/2);
+    st->sub_token = malloc(len*sizeof(char*)/2);
     st->sub_sz = 0;
     for (int i = 0; i <= len; i++) {
         if (isdigit(s->subject[i]) || isalpha(s->subject[i])) {
@@ -45,6 +45,6 @@ void get_token(str2token* st, mail* s) {
             st->sub_sz++;
         }
     }
-    st->sub_token = realloc(st->sub_token, st->sub_sz*sizeof(char));
+    st->sub_token = realloc(st->sub_token, st->sub_sz*sizeof(char*));
     return;
 }

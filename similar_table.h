@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "get_token.h"
 #include "hash_table.h"
 #include "api.h"
@@ -25,7 +26,7 @@ SimTable *initSimilar()
     return similar;
 }
 // Add a mail to the similar table, using the hashtable
-void addToSimilar(SimTable *sim, int mailID, mail* m, str2token* st, llist **hashTable)
+void addToSimilar(SimTable *sim, int mailID, str2token* st, llist **hashTable)
 {
 
     int repeat = 0;
@@ -63,34 +64,34 @@ double getSimilarity(SimTable *sim, int id1, int id2)
     return inter / (double)onion;
 }
 
-// int main()
-// {
-//     // /*
-//     llist **hashtable = initTable();
-//     SimTable *sim = initSimilar();
-//     char buf[30];
-//     for (int id = 1; id <= 10000; id++)
-//     {
-//         str2token *st;
-//         sprintf(buf, "data/pure/mail%d", id);
-//         st = readTokenFromFile(buf);
-//         // addToSimilar(sim, id-1, st, hashtable);
-//         for (int t = 0; t < st->sz; t++)
-//         {
-//             node *key_node = getTokenNode(hashtable, st->token[t]);
-//             addMailToToken(key_node, id);
-//         }
-//     }
-//     /* printf("%f\n", getSimilarity(sim, 0, 99)); */
-//     /* printf("%f\n", getSimilarity(sim, 44, 55)); */
-//     /* printf("%f\n", getSimilarity(sim, 22, 33)); */
-//     /*  */
-//     // */
-//     char k5[100] = "the";
-//     printf("%d\n", getTokenNode(hashtable, k5)->mail_cnt);
-//     printf("Multiply: %d\n", MAGIC_MUL);
-//     printf("Modulo: %d\n", KEY_RANGE);
-//     // printf("Collision: %d\n", COLLISION_CNT);
+int main()
+{
+    // /*
+    llist **hashtable = initTable();
+    SimTable *sim = initSimilar();
+    char buf[30];
+    for (int id = 1; id <= 10000; id++)
+    {
+        str2token *st;
+        sprintf(buf, "data/pure/mail%d", id);
+        st = readTokenFromFile(buf);
+        // addToSimilar(sim, id-1, st, hashtable);
+        for (int t = 0; t < st->sz; t++)
+        {
+            node *key_node = getTokenNode(hashtable, st->token[t]);
+            addMailToToken(key_node, id);
+        }
+    }
+    /* printf("%f\n", getSimilarity(sim, 0, 99)); */
+    /* printf("%f\n", getSimilarity(sim, 44, 55)); */
+    /* printf("%f\n", getSimilarity(sim, 22, 33)); */
+    /*  */
+    // */
+    char k5[100] = "the";
+    printf("%d\n", getTokenNode(hashtable, k5)->mail_cnt);
+    printf("Multiply: %d\n", MAGIC_MUL);
+    printf("Modulo: %d\n", KEY_RANGE);
+    // printf("Collision: %d\n", COLLISION_CNT);
 
-//     return 0;
-// }
+    return 0;
+}

@@ -176,8 +176,6 @@ node* getTokenNode(llist** table, char* key) {
         if (strcmp(key, cur_node->key) == 0) {
             return cur_node;
         } else {
-            // COLLISION_CNT+=1;
-            // printf("%s %s\n", key, cur_node->key);
             cur_node = cur_node->nxt;
         }
     }
@@ -272,12 +270,8 @@ int exprEval(char *expr, int* ans_arr, llist**table, int mail_n) {
                 buf[idx] = '\0';
                 tp++;
                 node* buf_node = getTokenNode(table, buf);
-                // printf("%s\n", buf);
-                // printf("%d\n", buf_node->mail_arr[4797]);
                 for (int i=0; i<mail_n; i++)
                     stk[tp][i] = buf_node->mail_arr[i];
-                // memcpy(stk[tp], buf_node->mail_arr, mail_n);
-                // printf("%d\n", stk[tp][4797]);
                 idx=0;
                 break;
         }
@@ -290,26 +284,18 @@ int exprEval(char *expr, int* ans_arr, llist**table, int mail_n) {
             ans_arr[cnt++] = i;
         }
     }
-    // printf("%d\n", stk[0][4797]);
     free(postfix);
     return cnt;
 }
 
 int main(void){
 	api.init(&n_mails, &n_queries, &mails, &queries);
-
-
     llist** hashtable = initTable();
     str2token token_sets[MAIL_N];
     int* add_counter = 0;
 
-    // printf("%s\n", mails[4332].content);
-    // printf("%s\n", mails[4332].subject);
-    // return 0;
-
     // Build the token table here!
     for (int i=0; i<n_mails; i++) {
-        // printf("%d\n", i);
         str2token* st = &token_sets[i];
         get_token(st, &mails[i]);
         for (int j=0; j<st->sz; j++) {
@@ -322,16 +308,6 @@ int main(void){
         }
     }
 
-    // str2token* st;
-    // st = &token_sets[4332];
-    // for (int i=0; i<st->sz; i++) {
-    //     printf("%s\n", st->token[i]);
-    // }
-    // return 0;
-
-    // node* token_node = getTokenNode(hashtable, "amenities");
-    // printf("%d\n", token_node->mail_arr[4797]);
-
 	for (int i=0; i<n_queries; i++)
 		if (queries[i].type == expression_match) {
             char *expr = queries[i].data.expression_match_data.expression;
@@ -341,7 +317,6 @@ int main(void){
             // for (int j=0; j<ans_cnt; j++)
             //     printf("%d ", query1_ans_arr[j]);
             // printf("\n");
-            // return 0;
         }
 
 	return 0;

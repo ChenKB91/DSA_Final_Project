@@ -195,16 +195,15 @@ SimTable *initSimilar()
 {
     SimTable *similar = malloc(sizeof(SimTable));
     similar->uniqToken = calloc(MAIL_N, sizeof(int));
-    similar->table = calloc(MAIL_N, sizeof(int *));
-    for (int i = 0; i < MAIL_N; i++)
+    similar->table = calloc(100, sizeof(int *));
+    for (int i = 0; i < 100; i++)
     {
         similar->table[i] = calloc(MAIL_N, sizeof(int));
     }
     return similar;
 }
-// Add a mail to the similar table, using the hashtable
-void addToSimilar(SimTable *sim, int mailID, str2token* st, llist **hashTable)
-{
+// add a series of tokens to the hashTable, but don't compute intersection yet
+void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTable){
     int repeat = 0;
     int prv_repeat = 0;
     for (int i = 0; i < st->sz; i++)
@@ -216,23 +215,70 @@ void addToSimilar(SimTable *sim, int mailID, str2token* st, llist **hashTable)
         { // if the inserted key is already in there
             prv_repeat = repeat;
         }
-        // else
-        {
-            int cnt = key_node->mail_cnt; 
-            if (cnt != -1)  // if there's no other mail with this token
-            {
-                mnode *mail = key_node->mail_list->head; // getMails(hashTable, key, key_hash)->head;
-                for (; mail != NULL; mail = mail->nxt)
-                {
-                    sim->table[mailID][mail->mail_id] += 1;
-                    sim->table[mail->mail_id][mailID] += 1;
-                }
-            }
-        }
     }
     sim->uniqToken[mailID] = st->sz - repeat;
 }
+// Add a mail to the similar table, using the hashtable
+// void addToSimilar(SimTable *sim, int mailID, str2token* st, llist **hashTable)
+// {
+//     int repeat = 0;
+//     int prv_repeat = 0;
+//     for (int i = 0; i < st->sz; i++)
+//     {
+//         char *key = st->token[i];
+//         node *key_node = getTokenNode(hashTable, key);
+//         addMailToToken(key_node, mailID, &repeat);
+//         if (repeat > prv_repeat)
+//         { // if the inserted key is already in there
+//             prv_repeat = repeat;
+//         }
+//         // else
+//         {
+//             int cnt = key_node->mail_cnt; 
+//             if (cnt != -1)  // if there's no other mail with this token
+//             {
+//                 mnode *mail = key_node->mail_list->head; // getMails(hashTable, key, key_hash)->head;
+//                 for (; mail != NULL; mail = mail->nxt)
+//                 {
+//                     sim->table[mailID][mail->mail_id] += 1;
+//                     sim->table[mail->mail_id][mailID] += 1;
+//                 }
+//             }
+//         }
+//     }
+//     sim->uniqToken[mailID] = st->sz - repeat;
+// }
+int findRowSimilar(SimTable *sim, llist **hashTable, int id, str2token *st, double thres, int* ansArr){
+    int visited[KEY_RANGE] = {0};
+    for( int i=0; i<st->sz; i++)
+    {
+        char *key = st->token[i];
+        int hash = hashStr(key);
+        if( !visited[hash] )
+        {
+            visited[ hashStr(key) ] = 1;
+            node *key_node = getTokenNode(hashTable, key); 
+            mnode *mail = key_node->mail_list->head; 
+            for (; mail != NULL; mail = mail->nxt)
+            {
+                sim->table[id][mail->mail_id] += 1;
+            }
+        }
+    }
+    int len = 0;
+    for( int i=0; i<n_mails; i++ )
+    {
+        if(sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i]- sim->table[id][i]) > thres)
+        {
+            ansArr[len] = i;
+            len += 1;
+        }
+    }
+    return len;
 
+}
+
+// get similarity from a fully built table
 double getSimilarity(SimTable *sim, int id1, int id2)
 {
     int inter = sim->table[id1][id2];
@@ -251,21 +297,21 @@ int main(){
     for( int i=0; i<n_mails; i++){
         str2token* st = &token_sets[i];
         get_token(st, &mails[i]);
-        addToSimilar(simtable, i, st, hashtable);
+        addMailToHashtable(simtable, i, st, hashtable);
     }
 
     for(int i=0; i<n_queries; i++){
         int len = 0;
         if(queries[i].type == find_similar){
             int mid = queries[i].data.find_similar_data.mid;
-            double thres = queries[i].data.find_similar_data.threshold;
-            for(int j=0; j<n_mails; j++){
-                if( getSimilarity(simtable, mid, j) > thres ){
-                    ans_array[len] = j;
-                    len += 1;
-                }
+            if( mid < 100 )
+            {
+                double thres = queries[i].data.find_similar_data.threshold;
+                findRowSimilar(simtable, hashtable, mid, &token_sets[mid], thres, ans_array);
+                api.answer(i,ans_array,len);
+
             }
+            
         }
-        api.answer(i,ans_array,len);
     }
 }

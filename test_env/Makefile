@@ -1,5 +1,5 @@
-main: main.c api.h
-	gcc main.c -o main -O3 -std=c11 -w
+main: hakka.c api.h
+	gcc hakka.c -o main -O3 -std=c11 -w
 
 validator/validator: validator/validator.cpp
 	g++ validator/validator.cpp -o validator/validator -O3

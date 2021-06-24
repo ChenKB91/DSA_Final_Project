@@ -17,6 +17,7 @@ query *queries;
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 17
+#define LAZY_NUM 200
 
 // Get index of the hash table by char
 const int transfer[128] = { // 16 per line
@@ -111,9 +112,9 @@ void addMailToToken(node* token_node, int mail_id, int* counter) {
         token_node->mail_cnt++;
         token_node->mail_arr[mail_id] = 1;
         mlistInsert(token_node->mail_list, mail_id);
-    } else {
-        *counter++;
-    }
+    } 
+    else
+        *counter = *counter+1;
 }
 
 node* getTokenNode(llist** table, char* key) {
@@ -184,23 +185,20 @@ void get_token(str2token* st, mail* s) {
 
 // similar_table.h
 
-char *uniqueTokens[100][10000];
+char *uniqueTokens[LAZY_NUM][10000];
 
 
-typedef struct
-{
+typedef struct {
     int *uniqToken; // number of unique tokens in each mail
     int **table;    // MailN x MailN array, intersecting tokens
 } SimTable;
 
 // Initialize a NxN int table
-SimTable *initSimilar()
-{
+SimTable *initSimilar(){
     SimTable *similar = malloc(sizeof(SimTable));
     similar->uniqToken = calloc(MAIL_N, sizeof(int));
-    similar->table = calloc(100, sizeof(int *));
-    for (int i = 0; i < 100; i++)
-    {
+    similar->table = calloc(LAZY_NUM, sizeof(int *));
+    for (int i = 0; i < LAZY_NUM; i++){
         similar->table[i] = calloc(MAIL_N, sizeof(int));
     }
     return similar;
@@ -208,33 +206,33 @@ SimTable *initSimilar()
 // add a series of tokens to the hashTable, but don't compute intersection yet
 void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTable){
     int repeat = 0;
+    int* ptr = &repeat;
     int prv_repeat = 0;
-    for (int i = 0; i < st->sz; i++)
-    {
+    for (int i = 0; i < st->sz; i++){
         char *key = st->token[i];
         node *key_node = getTokenNode(hashTable, key);
-        addMailToToken(key_node, mailID, &repeat);
-        if (repeat > prv_repeat)
-        { // if the inserted key is already in there
+        addMailToToken(key_node, mailID, ptr);
+        // printf("%d ", repeat);
+        if (repeat > prv_repeat){ // if the inserted key is already in there
             prv_repeat = repeat;
-        }else if(mailID < 100){
+        }else if(mailID < LAZY_NUM){
+            // printf("%s\n", key);
             uniqueTokens[mailID][i - repeat] = key;
         }
     }
-    for (int i = st->sz; i < st->sz+st->sub_sz; i++)
-    {
+    for (int i = 0; i < st->sub_sz; i++){
         char *key = st->sub_token[i];
+        // printf("%s\n", key);
         node *key_node = getTokenNode(hashTable, key);
-        addMailToToken(key_node, mailID, &repeat);
-        if (repeat > prv_repeat)
-        { // if the inserted key is already in there
+        addMailToToken(key_node, mailID, ptr);
+        if (repeat > prv_repeat){ // if the inserted key is already in there
             prv_repeat = repeat;
-        }else if(mailID < 100){
-            uniqueTokens[mailID][i - repeat] = key;
+        }else if(mailID < LAZY_NUM){
+            uniqueTokens[mailID][i + st->sz - repeat] = key;
         }
 
     }
-
+    // printf("\n");
     sim->uniqToken[mailID] = st->sz + st->sub_sz - repeat;
 }
 // Add a mail to the similar table, using the hashtable
@@ -271,19 +269,21 @@ int findRowSimilar(SimTable *sim, llist **hashTable, int id, double thres, int* 
     /* printf("hello hello\n\n"); */
     int repeat = 0;
     int prv = 0;
-    for( int i=0; i<sim->uniqToken[id]; i++){
+    for (int i = 0; i < sim->uniqToken[id]; i++) {
         char *key = uniqueTokens[id][i];
         node *key_node = getTokenNode(hashTable, key);
-
         mnode *mail = key_node->mail_list->head; 
-        for (; mail != NULL; mail = mail->nxt){
+        for (; mail != NULL; mail = mail->nxt) {
+            // if( mail->mail_id == 0) printf("%s\n", key);
             sim->table[id][mail->mail_id] += 1;
         }
-
     }
+    // printf("thres: %f\n", thres);
     int len = 0;
-    for( int i=0; i<n_mails; i++ ){
-        if(sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i] - sim->table[id][i]) > thres){
+    for(int i = 0; i < n_mails; i++) {
+        // printf("%f ", sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i] - sim->table[id]i]) );
+        if (i == id) continue;
+        if (sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i] - sim->table[id][i]) > thres) {
             ansArr[len] = i;
             len += 1;
         }
@@ -308,31 +308,78 @@ int main(){
     int ans_array[MAIL_N];
     
     /* printf("%p %p %p %p\n", hashtable, simtable, &token_sets, ans_array); */
-
-    for( int i=0; i<n_mails; i++){
+    // str2token* st = &token_sets[47];
+    // get_token(st, &mails[47]);
+    // addMailToHashtable(simtable, 47, st, hashtable);
+    // return 0;
+    for (int i=0; i<n_mails; i++) {
         str2token* st = &token_sets[i];
         get_token(st, &mails[i]);
         addMailToHashtable(simtable, i, st, hashtable);
     }
+    
+    // { {}, {}, {} }
+    
+    // print out array of token count
+    // printf("int token_cnt[10000] = {");
+    // for (int i=0;i<n_mails-1; i++){
+    //     printf("%d,", simtable->uniqToken[i]);
+    // }
+    // printf("%d };\n", simtable->uniqToken[n_mails-1]);
 
-    for(int i=0; i<n_queries; i++){
-        int len = 0;
-        if(queries[i].type == find_similar){
-            int mid = queries[i].data.find_similar_data.mid;
-            if( mid < 100 )
-            {
-                /* printf("%p %p %p %p\n", hashtable, simtable, &token_sets, ans_array); */
-                double thres = queries[i].data.find_similar_data.threshold;
-                len = findRowSimilar(simtable, hashtable, mid, thres, ans_array);
-                /* api.answer(i,ans_array,len); */
-
-                printf("%d: ",i);
-                for(int j=0;j<len;j++){
-                    printf("%d ", ans_array[j]);
-                }
-                printf("\n");
-            }
-            
-        }
+    for(int i=0; i<LAZY_NUM; i++){
+        findRowSimilar(simtable, hashtable, i, 1, ans_array);
     }
+
+    printf("int intersect[%d][10000] = {", LAZY_NUM);
+    for(int i = 0; i < LAZY_NUM; i++) {
+        printf("{");
+        for(int j = 0; j < 10000; j++) {
+            printf("%d", simtable->table[i][j]);
+            if (j != 9999) printf(",");
+        }
+        printf("}");
+        if (i != LAZY_NUM-1) printf(",");
+    }
+    printf("};\n");
+
+    // printf("int intersect[%d][10000] = {\n", LAZY_NUM);
+    // for (int i=0;i<LAZY_NUM-1; i++){
+    //     printf("{");
+    //     for (int j=0;j<10000-1;j++){
+    //         printf("%d,", [i][j]);    
+    //     }
+        
+    //     printf("%d }\n");
+    // }
+    // printf("};\n");
+
+    // for(int i=0; i<simtable->uniqToken[27]; i++){
+    //     printf("%s\n", uniqueTokens[27][i]);
+    // }
+    // return 0;
+
+
+    // double thres = queries[7205].data.find_similar_data.threshold;
+    // int len = findRowSimilar(simtable, hashtable, 27, thres, ans_array);
+
+    // for (int i = 0; i < n_queries; i++) {
+    //     int len = 0;
+    //     if (queries[i].type == find_similar) {
+    //         int mid = queries[i].data.find_similar_data.mid;
+    //         if (mid < LAZY_NUM) {
+    //             /* printf("%p %p %p %p\n", hashtable, simtable, &token_sets, ans_array); */
+    //             double thres = queries[i].data.find_similar_data.threshold;
+    //             len = findRowSimilar(simtable, hashtable, mid, thres, ans_array);
+    //             // api.answer(i,ans_array,len);
+    //             printf("%d: ",i);
+    //             for (int j = 0; j < len; j++) {
+    //                 printf("%d ", ans_array[j]);
+    //             }
+    //             printf("\n");
+    //         }
+    //     }
+    // }
+    return 0;
 }
+

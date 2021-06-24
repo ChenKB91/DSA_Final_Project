@@ -1,27 +1,22 @@
-// By: GWFrank
-#include "api.h"
+// By ChenKB
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include "api.h"
 
-// The testdata only contains the first 100 mails (mail1 ~ mail100)
-// and 2000 queries for you to debug.
+int n_mails, n_queries;
+mail *mails;
+query *queries;
+
+// hash_table.h
 
 #define MAGIC_MUL 8923 // 1361=>168 4583=>142 8923=>103
 #define KEY_RANGE 10000019 // a large prime number
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 17
-
-
-int n_mails, n_queries;
-mail *mails;
-query *queries;
-int stk[3000][MAIL_N];
-int query1_ans_arr[MAIL_N];
-
 
 // Get index of the hash table by char
 const int transfer[128] = { // 16 per line
@@ -41,53 +36,6 @@ int hashStr(char* s) {
         hash = (MAGIC_MUL*hash+(*s++)) % KEY_RANGE;
     }
     return hash;
-}
-
-typedef struct {
-    int sub_sz, sz;  // size of sub_token and token
-    char **sub_token; // token get from subject
-    char **token; // token get from content
-} str2token;
-void get_token(str2token* st, mail* s) {
-    int len = strlen(s->content);
-    int last = -1; // last position of [0-9a-zA-Z] alphabet "-1" means the previous alphabet is a non [0-9a-zA-Z] alphabet
-    st->token = malloc(len*sizeof(char*)/2);
-    st->sz = 0;
-    for (int i = 0; i <= len; i++) {
-        if (s->content[i] <= 'Z' && s->content[i] >= 'A') s->content[i] += 32;
-        if (isdigit(s->content[i]) || isalpha(s->content[i])) {
-            if (last == -1)
-                last = i;
-        }
-        else if (last != -1) {
-            st->token[st->sz] = malloc((i-last+1)*sizeof(char));
-            strncpy(st->token[st->sz], s->content+last, i-last);
-            st->token[st->sz][i-last] = '\0';
-            last = -1;
-            st->sz++;
-        }
-    }
-    st->token = realloc(st->token, st->sz*sizeof(char*));
-    len = strlen(s->subject);
-    last = -1;
-    st->sub_token = malloc(len*sizeof(char*)/2);
-    st->sub_sz = 0;
-    for (int i = 0; i <= len; i++) {
-        if (s->subject[i] <= 'Z' && s->subject[i] >= 'A') s->subject[i] += 32;
-        if (isdigit(s->subject[i]) || isalpha(s->subject[i])) {
-            if(last == -1)
-                last = i;
-        }
-        else if (last != -1) {
-            st->sub_token[st->sub_sz] = malloc((i-last+1)*sizeof(char));
-            strncpy(st->sub_token[st->sub_sz], s->subject+last, i-last);
-            st->sub_token[st->sub_sz][i-last] = '\0';
-            last = -1;
-            st->sub_sz++;
-        }
-    }
-    st->sub_token = realloc(st->sub_token, st->sub_sz*sizeof(char*));
-    return;
 }
 
 // Linked list for storing mail ids
@@ -176,148 +124,194 @@ node* getTokenNode(llist** table, char* key) {
         if (strcmp(key, cur_node->key) == 0) {
             return cur_node;
         } else {
+            // COLLISION_CNT+=1;
+            // printf("%s %s\n", key, cur_node->key);
             cur_node = cur_node->nxt;
         }
     }
     return newKey(&dict[idx], key);
 }
 
-int precedence(char c) {
-    switch (c) {
-        case '(': case ')':
-            return 10;
-        case '!':
-            return 5;
-        case '&':
-            return 4;
-        case '|':
-            return 3;
-        default:
-            return 0;
-    }
-}
+// get_token.h
 
-char* toPostfix(char* expr) {
-    char stk[2500];
-    int tp = -1;
-    char* postfix = malloc(5000*sizeof(char));
-    int post_idx = 0;
-    while (*expr) {
-        switch (*expr) {
-            case '(':
-                stk[++tp] = *expr;
-                break;
-            case ')':
-                while (stk[tp] != '(') {
-                    postfix[post_idx++] = stk[tp--];
-                }
-                tp--;
-                if (tp >= 0) {
-                    if (stk[tp] == '!') {
-                        postfix[post_idx++] = stk[tp--];
-                    }
-                }
-                break;
-            case '!': case '&': case '|':
-                while (tp >= 0
-                        && stk[tp] != '('
-                        && ((precedence(stk[tp]) > precedence(*expr)) || (stk[tp] == *expr && *expr != '!'))) {
-                    postfix[post_idx++] = stk[tp--];
-                }
-                stk[++tp] = *expr;
-                break;
-            default:
-                postfix[post_idx++] = *expr;
-                if (precedence(*(expr+1)) != 0)
-                    postfix[post_idx++] = ',';
-                break;
+typedef struct {
+    int sub_sz, sz;  // size of sub_token and token
+    char **sub_token; // token get from subject
+    char **token; // token get from content
+} str2token;
+
+void get_token(str2token* st, mail* s) {
+    int len = strlen(s->content);
+    int last = -1; // last position of [0-9a-zA-Z] alphabet "-1" means the previous alphabet is a non [0-9a-zA-Z] alphabet
+    st->token = malloc(len*sizeof(char*)/2);
+    st->sz = 0;
+    for (int i = 0; i <= len; i++) {
+        if (s->content[i] <= 'Z' && s->content[i] >= 'A') s->content[i] += 32;
+        if (isdigit(s->content[i]) || isalpha(s->content[i])) {
+            if (last == -1)
+                last = i;
         }
-        expr++;
-    }
-    while (tp >= 0) {
-        postfix[post_idx++] = stk[tp--];
-    }
-    postfix[post_idx++] = '\0';
-    return postfix;
-}
-
-
-int exprEval(char *expr, int* ans_arr, llist**table, int mail_n) {
-    char *postfix = toPostfix(expr);
-    char *c = postfix;
-    int tp=-1;
-    while (*c) {
-        char buf[55];
-        int idx=0;
-        switch (*c) {
-            case '!':
-                for (int i=0; i<MAIL_N; i++)
-                    stk[tp][i] = 1-stk[tp][i];
-                break;
-            case '&':
-                for (int i=0; i<MAIL_N; i++)
-                    stk[tp-1][i] = (stk[tp][i]&&stk[tp-1][i]);
-                tp--;
-                break;
-            case '|':
-                for (int i=0; i<MAIL_N; i++)
-                    stk[tp-1][i] = (stk[tp][i]||stk[tp-1][i]);
-                tp--;
-                break;
-            default:
-                while (*c != ',')
-                    buf[idx++] = *c++;
-                buf[idx] = '\0';
-                tp++;
-                node* buf_node = getTokenNode(table, buf);
-                for (int i=0; i<mail_n; i++)
-                    stk[tp][i] = buf_node->mail_arr[i];
-                idx=0;
-                break;
-        }
-        c++;
-    }
-    
-    int cnt=0;
-    for (int i=0; i<mail_n; i++) {
-        if (stk[0][i]) {
-            ans_arr[cnt++] = i;
+        else if (last != -1) {
+            st->token[st->sz] = malloc((i-last+1)*sizeof(char));
+            strncpy(st->token[st->sz], s->content+last, i-last);
+            st->token[st->sz][i-last] = '\0';
+            last = -1;
+            st->sz++;
         }
     }
-    free(postfix);
-    return cnt;
+    st->token = realloc(st->token, st->sz*sizeof(char*));
+    len = strlen(s->subject);
+    last = -1;
+    st->sub_token = malloc(len*sizeof(char*)/2);
+    st->sub_sz = 0;
+    for (int i = 0; i <= len; i++) {
+        if (s->subject[i] <= 'Z' && s->subject[i] >= 'A') s->subject[i] += 32;
+        if (isdigit(s->subject[i]) || isalpha(s->subject[i])) {
+            if(last == -1)
+                last = i;
+        }
+        else if (last != -1) {
+            st->sub_token[st->sub_sz] = malloc((i-last+1)*sizeof(char));
+            strncpy(st->sub_token[st->sub_sz], s->subject+last, i-last);
+            st->sub_token[st->sub_sz][i-last] = '\0';
+            last = -1;
+            st->sub_sz++;
+        }
+    }
+    st->sub_token = realloc(st->sub_token, st->sub_sz*sizeof(char*));
+    return;
 }
 
-int main(void){
-	api.init(&n_mails, &n_queries, &mails, &queries);
+// similar_table.h
+
+typedef struct
+{
+    int *uniqToken; // number of unique tokens in each mail
+    int **table;    // MailN x MailN array, intersecting tokens
+} SimTable;
+
+// Initialize a NxN int table
+SimTable *initSimilar()
+{
+    SimTable *similar = malloc(sizeof(SimTable));
+    similar->uniqToken = calloc(MAIL_N, sizeof(int));
+    similar->table = calloc(100, sizeof(int *));
+    for (int i = 0; i < 100; i++)
+    {
+        similar->table[i] = calloc(MAIL_N, sizeof(int));
+    }
+    return similar;
+}
+// add a series of tokens to the hashTable, but don't compute intersection yet
+void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTable){
+    int repeat = 0;
+    int prv_repeat = 0;
+    for (int i = 0; i < st->sz; i++)
+    {
+        char *key = st->token[i];
+        node *key_node = getTokenNode(hashTable, key);
+        addMailToToken(key_node, mailID, &repeat);
+        if (repeat > prv_repeat)
+        { // if the inserted key is already in there
+            prv_repeat = repeat;
+        }
+    }
+    sim->uniqToken[mailID] = st->sz - repeat;
+}
+// Add a mail to the similar table, using the hashtable
+// void addToSimilar(SimTable *sim, int mailID, str2token* st, llist **hashTable)
+// {
+//     int repeat = 0;
+//     int prv_repeat = 0;
+//     for (int i = 0; i < st->sz; i++)
+//     {
+//         char *key = st->token[i];
+//         node *key_node = getTokenNode(hashTable, key);
+//         addMailToToken(key_node, mailID, &repeat);
+//         if (repeat > prv_repeat)
+//         { // if the inserted key is already in there
+//             prv_repeat = repeat;
+//         }
+//         // else
+//         {
+//             int cnt = key_node->mail_cnt; 
+//             if (cnt != -1)  // if there's no other mail with this token
+//             {
+//                 mnode *mail = key_node->mail_list->head; // getMails(hashTable, key, key_hash)->head;
+//                 for (; mail != NULL; mail = mail->nxt)
+//                 {
+//                     sim->table[mailID][mail->mail_id] += 1;
+//                     sim->table[mail->mail_id][mailID] += 1;
+//                 }
+//             }
+//         }
+//     }
+//     sim->uniqToken[mailID] = st->sz - repeat;
+// }
+int findRowSimilar(SimTable *sim, llist **hashTable, int id, str2token *st, double thres, int* ansArr){
+    int visited[KEY_RANGE] = {0};
+    for( int i=0; i<st->sz; i++)
+    {
+        char *key = st->token[i];
+        int hash = hashStr(key);
+        if( !visited[hash] )
+        {
+            visited[ hashStr(key) ] = 1;
+            node *key_node = getTokenNode(hashTable, key); 
+            mnode *mail = key_node->mail_list->head; 
+            for (; mail != NULL; mail = mail->nxt)
+            {
+                sim->table[id][mail->mail_id] += 1;
+            }
+        }
+    }
+    int len = 0;
+    for( int i=0; i<n_mails; i++ )
+    {
+        if(sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i]- sim->table[id][i]) > thres)
+        {
+            ansArr[len] = i;
+            len += 1;
+        }
+    }
+    return len;
+
+}
+
+// get similarity from a fully built table
+double getSimilarity(SimTable *sim, int id1, int id2)
+{
+    int inter = sim->table[id1][id2];
+    int onion = sim->uniqToken[id1] + sim->uniqToken[id2] - inter; // union is a keyword Q_Q
+    return inter / (double)onion;
+}
+
+int main(){
+    api.init(&n_mails, &n_queries, &mails, &queries);
+
     llist** hashtable = initTable();
-    str2token token_sets[MAIL_N];
-    int* add_counter = 0;
+    SimTable* simtable = initSimilar();
+    str2token token_sets[n_mails];
+    int ans_array[n_mails];
 
-    // Build the token table here!
-    for (int i=0; i<n_mails; i++) {
+    for( int i=0; i<n_mails; i++){
         str2token* st = &token_sets[i];
         get_token(st, &mails[i]);
-        for (int j=0; j<st->sz; j++) {
-            node* token_node = getTokenNode(hashtable, st->token[j]);
-            addMailToToken(token_node, mails[i].id, add_counter);
-        }
-        for (int j=0; j<st->sub_sz; j++) {
-            node* token_node = getTokenNode(hashtable, st->sub_token[j]);
-            addMailToToken(token_node, mails[i].id, add_counter);
-        }
+        addMailToHashtable(simtable, i, st, hashtable);
     }
 
-	for (int i=0; i<n_queries; i++)
-		if (queries[i].type == expression_match) {
-            char *expr = queries[i].data.expression_match_data.expression;
-            int ans_cnt = exprEval(expr, query1_ans_arr, hashtable, n_mails);
-            api.answer(queries[i].id, query1_ans_arr, ans_cnt);
-            // printf("%d: ", queries[i].id);
-            // for (int j=0; j<ans_cnt; j++)
-            //     printf("%d ", query1_ans_arr[j]);
-            // printf("\n");
-        }
+    for(int i=0; i<n_queries; i++){
+        int len = 0;
+        if(queries[i].type == find_similar){
+            int mid = queries[i].data.find_similar_data.mid;
+            if( mid < 100 )
+            {
+                double thres = queries[i].data.find_similar_data.threshold;
+                findRowSimilar(simtable, hashtable, mid, &token_sets[mid], thres, ans_array);
+                api.answer(i,ans_array,len);
 
-	return 0;
+            }
+            
+        }
+    }
 }

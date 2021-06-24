@@ -184,6 +184,9 @@ void get_token(str2token* st, mail* s) {
 
 // similar_table.h
 
+char *uniqueTokens[100][10000];
+
+
 typedef struct
 {
     int *uniqToken; // number of unique tokens in each mail
@@ -214,9 +217,11 @@ void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTa
         if (repeat > prv_repeat)
         { // if the inserted key is already in there
             prv_repeat = repeat;
+        }else if(mailID < 100){
+            uniqueTokens[mailID][i - repeat] = key;
         }
     }
-    for (int i = 0; i < st->sub_sz; i++)
+    for (int i = st->sz; i < st->sz+st->sub_sz; i++)
     {
         char *key = st->sub_token[i];
         node *key_node = getTokenNode(hashTable, key);
@@ -224,7 +229,10 @@ void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTa
         if (repeat > prv_repeat)
         { // if the inserted key is already in there
             prv_repeat = repeat;
+        }else if(mailID < 100){
+            uniqueTokens[mailID][i - repeat] = key;
         }
+
     }
 
     sim->uniqToken[mailID] = st->sz + st->sub_sz - repeat;
@@ -259,32 +267,23 @@ void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTa
 //     }
 //     sim->uniqToken[mailID] = st->sz - repeat;
 // }
-int findRowSimilar(SimTable *sim, llist **hashTable, int id, str2token *st, double thres, int* ansArr){
+int findRowSimilar(SimTable *sim, llist **hashTable, int id, double thres, int* ansArr){
     /* printf("hello hello\n\n"); */
     int repeat = 0;
     int prv = 0;
-    for( int i=0; i<st->sz; i++)
-    {
-        char *key = st->token[i];
+    for( int i=0; i<sim->uniqToken[id]; i++){
+        char *key = uniqueTokens[id][i];
         node *key_node = getTokenNode(hashTable, key);
-        addMailToToken(key_node, id, &repeat);
 
-        if( repeat == prv )
-        {
-            mnode *mail = key_node->mail_list->head; 
-            for (; mail != NULL; mail = mail->nxt)
-            {
-                sim->table[id][mail->mail_id] += 1;
-            }
-        }else{
-            prv = repeat;
+        mnode *mail = key_node->mail_list->head; 
+        for (; mail != NULL; mail = mail->nxt){
+            sim->table[id][mail->mail_id] += 1;
         }
+
     }
     int len = 0;
-    for( int i=0; i<n_mails; i++ )
-    {
-        if(sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i]- sim->table[id][i]) > thres)
-        {
+    for( int i=0; i<n_mails; i++ ){
+        if(sim->table[id][i] / (double)(sim->uniqToken[id] + sim->uniqToken[i] - sim->table[id][i]) > thres){
             ansArr[len] = i;
             len += 1;
         }
@@ -294,8 +293,7 @@ int findRowSimilar(SimTable *sim, llist **hashTable, int id, str2token *st, doub
 }
 
 // get similarity from a fully built table
-double getSimilarity(SimTable *sim, int id1, int id2)
-{
+double getSimilarity(SimTable *sim, int id1, int id2){
     int inter = sim->table[id1][id2];
     int onion = sim->uniqToken[id1] + sim->uniqToken[id2] - inter; // union is a keyword Q_Q
     return inter / (double)onion;
@@ -325,7 +323,7 @@ int main(){
             {
                 /* printf("%p %p %p %p\n", hashtable, simtable, &token_sets, ans_array); */
                 double thres = queries[i].data.find_similar_data.threshold;
-                len = findRowSimilar(simtable, hashtable, mid, &token_sets[mid], thres, ans_array);
+                len = findRowSimilar(simtable, hashtable, mid, thres, ans_array);
                 /* api.answer(i,ans_array,len); */
 
                 printf("%d: ",i);

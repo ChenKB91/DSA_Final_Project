@@ -260,21 +260,24 @@ void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTa
 //     sim->uniqToken[mailID] = st->sz - repeat;
 // }
 int findRowSimilar(SimTable *sim, llist **hashTable, int id, str2token *st, double thres, int* ansArr){
-    printf("hello hello\n\n");
-    int visited[KEY_RANGE] = {0};
+    /* printf("hello hello\n\n"); */
+    int repeat = 0;
+    int prv = 0;
     for( int i=0; i<st->sz; i++)
     {
         char *key = st->token[i];
-        int hash = hashStr(key);
-        if( !visited[hash] )
+        node *key_node = getTokenNode(hashTable, key);
+        addMailToToken(key_node, id, &repeat);
+
+        if( repeat == prv )
         {
-            visited[ hashStr(key) ] = 1;
-            node *key_node = getTokenNode(hashTable, key); 
             mnode *mail = key_node->mail_list->head; 
             for (; mail != NULL; mail = mail->nxt)
             {
                 sim->table[id][mail->mail_id] += 1;
             }
+        }else{
+            prv = repeat;
         }
     }
     int len = 0;
@@ -303,8 +306,10 @@ int main(){
 
     llist** hashtable = initTable();
     SimTable* simtable = initSimilar();
-    str2token token_sets[n_mails];
-    int ans_array[n_mails];
+    str2token token_sets[MAIL_N];
+    int ans_array[MAIL_N];
+    
+    /* printf("%p %p %p %p\n", hashtable, simtable, &token_sets, ans_array); */
 
     for( int i=0; i<n_mails; i++){
         str2token* st = &token_sets[i];
@@ -318,11 +323,16 @@ int main(){
             int mid = queries[i].data.find_similar_data.mid;
             if( mid < 100 )
             {
-                printf("asjdklfjaldsfjkaljfklajfkjsdkfljasdjfa\n\n\n\n");
+                /* printf("%p %p %p %p\n", hashtable, simtable, &token_sets, ans_array); */
                 double thres = queries[i].data.find_similar_data.threshold;
                 len = findRowSimilar(simtable, hashtable, mid, &token_sets[mid], thres, ans_array);
-                api.answer(i,ans_array,len);
+                /* api.answer(i,ans_array,len); */
 
+                printf("%d: ",i);
+                for(int j=0;j<len;j++){
+                    printf("%d ", ans_array[j]);
+                }
+                printf("\n");
             }
             
         }

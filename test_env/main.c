@@ -216,7 +216,18 @@ void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTa
             prv_repeat = repeat;
         }
     }
-    sim->uniqToken[mailID] = st->sz - repeat;
+    for (int i = 0; i < st->sub_sz; i++)
+    {
+        char *key = st->sub_token[i];
+        node *key_node = getTokenNode(hashTable, key);
+        addMailToToken(key_node, mailID, &repeat);
+        if (repeat > prv_repeat)
+        { // if the inserted key is already in there
+            prv_repeat = repeat;
+        }
+    }
+
+    sim->uniqToken[mailID] = st->sz + st->sub_sz - repeat;
 }
 // Add a mail to the similar table, using the hashtable
 // void addToSimilar(SimTable *sim, int mailID, str2token* st, llist **hashTable)
@@ -249,6 +260,7 @@ void addMailToHashtable(SimTable *sim, int mailID, str2token* st, llist **hashTa
 //     sim->uniqToken[mailID] = st->sz - repeat;
 // }
 int findRowSimilar(SimTable *sim, llist **hashTable, int id, str2token *st, double thres, int* ansArr){
+    printf("hello hello\n\n");
     int visited[KEY_RANGE] = {0};
     for( int i=0; i<st->sz; i++)
     {
@@ -306,8 +318,9 @@ int main(){
             int mid = queries[i].data.find_similar_data.mid;
             if( mid < 100 )
             {
+                printf("asjdklfjaldsfjkaljfklajfkjsdkfljasdjfa\n\n\n\n");
                 double thres = queries[i].data.find_similar_data.threshold;
-                findRowSimilar(simtable, hashtable, mid, &token_sets[mid], thres, ans_array);
+                len = findRowSimilar(simtable, hashtable, mid, &token_sets[mid], thres, ans_array);
                 api.answer(i,ans_array,len);
 
             }

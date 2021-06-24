@@ -59,7 +59,7 @@ int* group_analyse(int n, mail* data, int *usr) {
         if (find_set(ht[0]) != find_set(ht[1])) {
             gl[0]--;
             int l = set_union(ht[0], ht[1]);
-            gl[1] = gl[1] > l ? gl[1] : l
+            gl[1] = gl[1] > l ? gl[1] : l;
         }
     }
     return gl;

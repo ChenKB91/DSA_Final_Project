@@ -17,7 +17,7 @@ query *queries;
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 17
-#define LAZY_NUM 200
+#define LAZY_NUM 1000
 
 // Get index of the hash table by char
 const int transfer[128] = { // 16 per line
@@ -321,11 +321,11 @@ int main(){
     // { {}, {}, {} }
     
     // print out array of token count
-    // printf("int token_cnt[10000] = {");
-    // for (int i=0;i<n_mails-1; i++){
-    //     printf("%d,", simtable->uniqToken[i]);
-    // }
-    // printf("%d };\n", simtable->uniqToken[n_mails-1]);
+    printf("int token_cnt[10000] = {");
+    for (int i=0;i<n_mails-1; i++){
+        printf("%d,", simtable->uniqToken[i]);
+    }
+    printf("%d };\n", simtable->uniqToken[n_mails-1]);
 
     for(int i=0; i<LAZY_NUM; i++){
         findRowSimilar(simtable, hashtable, i, 1, ans_array);
@@ -341,24 +341,7 @@ int main(){
         printf("}");
         if (i != LAZY_NUM-1) printf(",");
     }
-    printf("};\n");
-
-    // printf("int intersect[%d][10000] = {\n", LAZY_NUM);
-    // for (int i=0;i<LAZY_NUM-1; i++){
-    //     printf("{");
-    //     for (int j=0;j<10000-1;j++){
-    //         printf("%d,", [i][j]);    
-    //     }
-        
-    //     printf("%d }\n");
-    // }
-    // printf("};\n");
-
-    // for(int i=0; i<simtable->uniqToken[27]; i++){
-    //     printf("%s\n", uniqueTokens[27][i]);
-    // }
-    // return 0;
-
+    printf("};\n\n");
 
     // double thres = queries[7205].data.find_similar_data.threshold;
     // int len = findRowSimilar(simtable, hashtable, 27, thres, ans_array);

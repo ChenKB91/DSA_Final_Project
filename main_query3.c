@@ -51,7 +51,7 @@ int set_union(int x, int y) {
     }
     return dsu[set_x].sz;
 }
-int* group_analyse_func(int n, mail* data, int *usr) {
+void group_analyse_func(int n, mail* data, int *usr) {
     int ht[2];
     gl[0] = 0, gl[1] = 1;
     for (int i = 0; i < n; i++) {
@@ -71,18 +71,16 @@ int* group_analyse_func(int n, mail* data, int *usr) {
             gl[1] = gl[1] > l ? gl[1] : l;
         }
     }
-    return gl;
 }
 
 int main() {
     api.init(&n_mails, &n_queries, &mails, &queries);
-    outfile = fopen("out.txt", "w");
     for (int i = 0; i < n_queries; i++) {
         if (queries[i].type == group_analyse) {
             memset(dsu_fill, 0, sizeof(dsu_fill));
             int len = queries[i].data.group_analyse_data.len;
             int *mids = queries[i].data.group_analyse_data.mids;
-            *gl = group_analyse_func(len, mails, mids);
+            group_analyse_func(len, mails, mids);
             //fprintf(outfile, "%d: %d %d\n", queries[i].id, gl[0], gl[1]);
             api.answer(queries[i].id, gl, 2);
         }

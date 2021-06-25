@@ -11,3 +11,4 @@ data/*
 *.tar.gz
 ## gporf file
 gmon.out 
+main_ultimate_ver2.c

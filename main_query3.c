@@ -77,11 +77,13 @@ int main() {
     api.init(&n_mails, &n_queries, &mails, &queries);
     for (int i = 0; i < n_queries; i++) {
         if (queries[i].type == group_analyse) {
-            memset(dsu_fill, 0, sizeof(dsu_fill));
-            int len = queries[i].data.group_analyse_data.len;
-            int *mids = queries[i].data.group_analyse_data.mids;
-            group_analyse_func(len, mails, mids);
-            api.answer(queries[i].id, gl, 2);
+            if (queries[i].reward >= 0.2) {
+                memset(dsu_fill, 0, sizeof(dsu_fill));
+                int len = queries[i].data.group_analyse_data.len;
+                int *mids = queries[i].data.group_analyse_data.mids;
+                group_analyse_func(len, mails, mids);
+                api.answer(queries[i].id, gl, 2);
+            }
         }
     }
     return 0;

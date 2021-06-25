@@ -57,12 +57,12 @@ void group_analyse_func(int n, mail* data, int *usr) {
     for (int i = 0; i < n; i++) {
         ht[0] = str_hash(data[usr[i]].from);
         ht[1] = str_hash(data[usr[i]].to);
-//        fprintf(outfile, "%s %s\n", data[usr[i]].from, data[usr[i]].to);    
         for (int j = 0; j < 2; j++) {
             if (!dsu_fill[ht[j]]) {
                 dsu_fill[ht[j]] = 1;
                 gl[0]++;
                 dsu_init(ht[j]);
+                if (ht[0] == ht[1]) gl[0]--;
             }
         }
         if (find_set(ht[0]) != find_set(ht[1])) {
@@ -81,7 +81,6 @@ int main() {
             int len = queries[i].data.group_analyse_data.len;
             int *mids = queries[i].data.group_analyse_data.mids;
             group_analyse_func(len, mails, mids);
-            //fprintf(outfile, "%d: %d %d\n", queries[i].id, gl[0], gl[1]);
             api.answer(queries[i].id, gl, 2);
         }
     }

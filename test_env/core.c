@@ -1,4 +1,4 @@
-#define LAZY_NUM 1500
+#define LAZY_NUM 1000
 #define GROUP_MODL 20118
 #define POW_BASE 31
 

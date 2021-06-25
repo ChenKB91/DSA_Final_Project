@@ -11,8 +11,7 @@
 int n_mails, n_queries;
 mail *mails;
 query *queries;
-FILE *outfile;
-
+int gl[2];
 typedef struct {
     int parent, sz;
 } dsu_unit;
@@ -40,7 +39,7 @@ int find_set(int x) {
     dsu[x].parent = find_set(dsu[x].parent);
     return dsu[x].parent;
 }
-int set_union(int x, int y) {
+void set_union(int x, int y) {
     int set_x = find_set(x), set_y = find_set(y);
     if (dsu[set_x].sz < dsu[set_y].sz) 
         swap(&set_x, &set_y);
@@ -50,12 +49,12 @@ int set_union(int x, int y) {
     }
     return dsu[set_x].sz;
 }
-int* group_analyse_func(int n, mail* data, int *usr) {
-    int gl[2] = {0}, ht[2];
+void group_analyse(int n, mail* data, int *usr) {
+    int ht[2];
+    gl[0] = 0, gl[1] = 0;
     for (int i = 0; i < n; i++) {
-        ht[0] = str_hash(data[usr[i]].from);
-        ht[1] = str_hash(data[usr[i]].to);
-//        fprintf(outfile, "%s %s\n", data[usr[i]].from, data[usr[i]].to);    
+        ht[0] = str_hash(mail[usr[i]]->from);
+        ht[1] = str_hash(mail[usr[i]]->from);
         for (int j = 0; j < 2; j++) {
             if (!dsu_fill[ht[j]]) {
                 dsu_fill[ht[j]] = 1;
@@ -69,19 +68,16 @@ int* group_analyse_func(int n, mail* data, int *usr) {
             gl[1] = gl[1] > l ? gl[1] : l;
         }
     }
-    return gl;
 }
 
 int main() {
     api.init(&n_mails, &n_queries, &mails, &queries);
-    outfile = fopen("out.txt", "w");
+
     for (int i = 0; i < n_queries; i++) {
         if (queries[i].type == group_analyse) {
-            memset(dsu_fill, 0, sizeof(dsu_fill));
             int len = queries[i].data.group_analyse_data.len;
             int *mids = queries[i].data.group_analyse_data.mids;
-            int *gl = group_analyse_func(len, mails, mids);
-            fprintf(outfile, "%d: %d %d\n", queries[i].id, gl[0], gl[1]);
+            group_analyse(len, mails, mids);
             api.answer(queries[i].id, gl, 2);
         }
     }

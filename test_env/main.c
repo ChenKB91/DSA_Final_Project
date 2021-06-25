@@ -17,7 +17,7 @@ query *queries;
 #define KEY_SIZE 55
 #define MAIL_N 10005
 #define GROUP_N 17
-#define LAZY_NUM 1000
+#define LAZY_NUM 3000
 
 // Get index of the hash table by char
 const int transfer[128] = { // 16 per line

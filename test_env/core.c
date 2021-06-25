@@ -1,4 +1,4 @@
-#define LAZY_NUM 1000
+#define LAZY_NUM 3000
 int n_mails, n_queries;
 mail *mails;
 query *queries;

@@ -1,7 +1,3 @@
----
-tags: DSA
----
-
 # DSA Final Project Report
 
 Team ID: `team33`
